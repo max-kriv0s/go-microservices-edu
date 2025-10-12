@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1;payment_v1";
+
+service PaymentService {
+    // Обрабатывает команду на оплату и возвращает transaction_uuid
+    rpc PayOrder(PayOrderRequest) returns (PayOrderResponse);
+}
+
+// PaymentMethod - способы оплаты
+enum PaymentMethod {
+    // Неизвестный способ
+    UNKNOWN = 0;
+    // Банковская карта
+    CARD = 1;
+    // Система быстрых платежей
+    SBP = 2;
+    // Кредитная карта
+    CREDIT_CARD = 3;
+    // Деньги инвестора (внутренний метод)
+    INVESTOR_MONEY = 4;
+}
+
+// PayOrderRequest - запрос на оплату заказа
+message PayOrderRequest {
+    // UUID заказа
+    string order_uuid = 1;
+    // UUID пользователя, который инициирует оплату
+    string user_uuid = 2;
+    // Выбранный способ оплаты
+    PaymentMethod payment_method = 3;
+}
+
+// PayOrderResponse - ответ после оплаты заказа
+message PayOrderResponse {
+    // UUID транзакции оплаты
+    string transaction_uuid = 1;
+}

@@ -1,0 +1,35 @@
+parameters:
+  - $ref: ../params/order_uuid.yaml
+
+post:
+  summary: Отменить заказ
+  description: CancelOrder
+  tags:
+    - Orders
+  responses:
+    '204':
+      description: 'Заказ успешно отменён'
+    '404':
+      description: Not found order
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/not_found_error.yaml
+    '409':
+      description: Conflict - the order is paid for
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/conflict_error.yaml
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/internal_server_error.yaml
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/generic_error.yaml
