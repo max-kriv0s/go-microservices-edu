@@ -31,6 +31,12 @@ post:
         application/json:
           schema:
             $ref: ../components/errors/not_found_error.yaml
+    '409':
+      description: Conflict - the order is paid for
+      content:
+        application/json:
+          schema:
+            $ref: ../components/errors/conflict_error.yaml
     '500':
       description: Internal server error
       content:

@@ -108,6 +108,7 @@ func (s *ConflictError) SetMessage(val string) {
 }
 
 func (*ConflictError) aPIV1OrdersOrderUUIDCancelPostRes() {}
+func (*ConflictError) payOrderRes()                       {}
 
 // Ref: #/components/schemas/create_order_request_dto
 type CreateOrderRequestDto struct {

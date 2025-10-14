@@ -3,6 +3,7 @@ module github.com/max-kriv0s/go-microservices-edu/shared
 go 1.24.5
 
 require (
+	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/go-faster/errors v0.7.1
 	github.com/go-faster/jx v1.1.0
 	github.com/google/uuid v1.6.0
