@@ -12,9 +12,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	paymentV1API "github.com/max-kriv0s/go-microservices-edu/payment/internal/api/payment/v1"
-
 	paymentService "github.com/max-kriv0s/go-microservices-edu/payment/internal/service/payment"
-
 	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 )
 
