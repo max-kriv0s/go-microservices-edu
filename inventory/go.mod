@@ -7,12 +7,12 @@ replace github.com/max-kriv0s/go-microservices-edu/shared => ../shared
 require (
 	github.com/brianvoe/gofakeit/v7 v7.7.3
 	github.com/max-kriv0s/go-microservices-edu/shared v0.0.0-00010101000000-000000000000
+	github.com/samber/lo v1.52.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
-	github.com/samber/lo v1.52.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect

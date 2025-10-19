@@ -3,9 +3,10 @@ package v1
 import (
 	"time"
 
+	"google.golang.org/grpc"
+
 	def "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc"
 	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
-	"google.golang.org/grpc"
 )
 
 var _ def.PaymentServiceClient = (*paymentServiceClient)(nil)

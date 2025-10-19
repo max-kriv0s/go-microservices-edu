@@ -1,9 +1,9 @@
 package converter
 
 import (
-	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	"github.com/samber/lo"
 
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	repoModel "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/model"
 )
 

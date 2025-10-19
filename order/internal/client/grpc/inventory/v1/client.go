@@ -3,9 +3,10 @@ package v1
 import (
 	"time"
 
+	"google.golang.org/grpc"
+
 	def "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc"
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
-	"google.golang.org/grpc"
 )
 
 var _ def.InventoryServiceClient = (*inventoryServiceClient)(nil)

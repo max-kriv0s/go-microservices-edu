@@ -3,9 +3,10 @@ package converter
 import (
 	"time"
 
+	"github.com/samber/lo"
+
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
-	"github.com/samber/lo"
 )
 
 func ClientPartToModel(part *inventoryV1.Part) *model.Part {
