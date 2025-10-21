@@ -13,6 +13,7 @@ vars:
   OGEN_VERSION: 'v1.12.0'
   YQ_VERSION: 'v4.45.2'
   GRPCURL_VERSION: 'v1.9.3'
+  MOCKERY_VERSION: 'v2.53.3'
 
   BIN_DIR: '{{.ROOT_DIR}}/bin'
   GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
@@ -25,6 +26,9 @@ vars:
   PROTOC_GEN_GO_GRPC: '{{.BIN_DIR}}/protoc-gen-go-grpc'
   PROTOC_GEN_VALIDATE: '{{.BIN_DIR}}/protoc-gen-validate'
   GRPCURL: '{{.BIN_DIR}}/grpcurl'
+  MOCKERY: '{{.BIN_DIR}}/mockery'
+
+  COVERAGE_DIR: '{{.ROOT_DIR}}/coverage'
 
   NODE_MODULES_DIR: '{{.ROOT_DIR}}/node_modules/.bin'
   REDOCLY: '{{.NODE_MODULES_DIR}}/redocly'
@@ -290,6 +294,41 @@ tasks:
     desc: 'Запускает order сервер'
     cmds:
       - go run order/cmd/main.go
+
+  mockery:install:
+    desc: 'Устанавливает mockery в ./bin'
+    cmds:
+      - |
+        [ -f {{.MOCKERY}} ] || {
+          echo '📦 Installing mockery...'
+          GOBIN={{.BIN_DIR}} go install github.com/vektra/mockery/v2@{{.MOCKERY_VERSION}}
+        }
+    status:
+      - test -x {{.MOCKERY}}
+
+  mockery:gen:
+    desc: 'Генерирует моки интерфейсов с помощью mockery'
+    deps: [mockery:install]
+    cmds:
+      - |
+        echo '🧪 Генерация моков...'
+        {{.MOCKERY}}
+
+  test:
+    desc: 'Запускает юнит-тесты для всех модулей'
+    summary: |
+      Запускает юнит-тесты для указанных модулей проекта.
+      Можно указать конкретные модули через переменную MODULES.
+    cmds:
+      - |
+        ERR=0
+        for mod in {{.MODULES}}; do
+          if [ -d "$mod" ]; then
+            echo "🧪 Тестируем модуль $mod"
+            go test -v ./$mod/... || ERR=1
+          fi
+        done
+        exit $ERR
 
   test-api:
     desc: '🧪 Запуск тестов для проверки API микросервисов'

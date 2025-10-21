@@ -47,7 +47,7 @@ func generatePart() model.Part {
 	part := model.Part{
 		Uuid:          gofakeit.UUID(),
 		Name:          gofakeit.ProductName(),
-		Description:   gofakeit.Sentence(10),
+		Description:   gofakeit.Sentence(),
 		Price:         gofakeit.Price(1, 1000),
 		StockQuantity: int64(gofakeit.IntRange(0, 100)),
 		Category:      category,
