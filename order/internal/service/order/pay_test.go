@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/brianvoe/gofakeit/v7"
+
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
 

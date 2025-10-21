@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	"github.com/samber/lo"
+
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
 
 func fakePart() model.Part {
