@@ -3,8 +3,6 @@ package order
 import (
 	"context"
 
-	"github.com/google/uuid"
-
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
 
@@ -23,15 +21,18 @@ func (s *service) CreateOrder(ctx context.Context, data model.CreateOrderRequest
 	}
 
 	newOrder := model.Order{
-		OrderUUID:  uuid.NewString(),
+		OrderUUID:  "",
 		UserUUID:   data.UserUUID,
 		PartsUUIDs: data.PartUuids,
 		TotalPrice: totalPrice,
 		Status:     model.OrderStatusPendingPayment,
 	}
-	_, err = s.orderRepository.Create(ctx, newOrder)
+	OrderUUID, err := s.orderRepository.Create(ctx, newOrder)
 	if err != nil {
 		return model.Order{}, model.ErrInternalServer
 	}
+
+	newOrder.OrderUUID = OrderUUID
+
 	return newOrder, nil
 }

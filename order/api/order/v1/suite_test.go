@@ -6,13 +6,13 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/max-kriv0s/go-microservices-edu/payment/internal/service/mocks"
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/service/mocks"
 )
 
 type APISuite struct {
 	suite.Suite
 
-	paymentService *mocks.PaymentService
+	orderService *mocks.OrderService
 
 	api *api
 }
@@ -22,10 +22,10 @@ func (s *APISuite) Ctx() context.Context {
 }
 
 func (s *APISuite) SetupTest() {
-	s.paymentService = mocks.NewPaymentService(s.T())
+	s.orderService = mocks.NewOrderService(s.T())
 
 	s.api = NewAPI(
-		s.paymentService,
+		s.orderService,
 	)
 }
 

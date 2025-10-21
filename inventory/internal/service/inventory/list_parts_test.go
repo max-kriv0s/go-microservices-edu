@@ -2,6 +2,7 @@ package inventory
 
 import (
 	"github.com/brianvoe/gofakeit/v7"
+
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 )
 
@@ -13,9 +14,9 @@ func (s *ServiceSuite) TestListPartsReturnAllParts() {
 		parts = []model.Part{part1, part2}
 	)
 
-	s.inventoryRepository.On("FindAll", s.ctx).Return(parts, nil)
+	s.inventoryRepository.On("FindAll", s.Ctx()).Return(parts, nil)
 
-	res, err := s.service.ListParts(s.ctx, nil)
+	res, err := s.service.ListParts(s.Ctx(), nil)
 
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
@@ -35,9 +36,9 @@ func (s *ServiceSuite) TestListPartsSuccess() {
 		expectedParts = []model.Part{part1}
 	)
 
-	s.inventoryRepository.On("FindAll", s.ctx).Return(parts, nil)
+	s.inventoryRepository.On("FindAll", s.Ctx()).Return(parts, nil)
 
-	res, err := s.service.ListParts(s.ctx, filter)
+	res, err := s.service.ListParts(s.Ctx(), filter)
 
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
@@ -51,9 +52,9 @@ func (s *ServiceSuite) TestListPartsError() {
 		expectedErr = model.ErrInternalServer
 	)
 
-	s.inventoryRepository.On("FindAll", s.ctx).Return(nil, repoErr)
+	s.inventoryRepository.On("FindAll", s.Ctx()).Return(nil, repoErr)
 
-	res, err := s.service.ListParts(s.ctx, nil)
+	res, err := s.service.ListParts(s.Ctx(), nil)
 	s.Require().Nil(res)
 	s.Require().Error(err)
 	s.Require().ErrorIs(err, expectedErr)

@@ -2,10 +2,11 @@ package v1
 
 import (
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/max-kriv0s/go-microservices-edu/payment/internal/converter"
-	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/max-kriv0s/go-microservices-edu/payment/internal/converter"
+	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 )
 
 func (s *APISuite) TestPayOrderSuccess() {
@@ -25,9 +26,9 @@ func (s *APISuite) TestPayOrderSuccess() {
 		transactionUuid = gofakeit.UUID()
 	)
 
-	s.paymentService.On("PayOrder", s.ctx, expectdModel).Return(transactionUuid, nil)
+	s.paymentService.On("PayOrder", s.Ctx(), expectdModel).Return(transactionUuid, nil)
 
-	res, err := s.api.PayOrder(s.ctx, req)
+	res, err := s.api.PayOrder(s.Ctx(), req)
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
 	s.Require().Equal(transactionUuid, res.GetTransactionUuid())
@@ -46,7 +47,7 @@ func (s *APISuite) TestPayOrderValidateError() {
 		}
 	)
 
-	res, err := s.api.PayOrder(s.ctx, req)
+	res, err := s.api.PayOrder(s.Ctx(), req)
 	s.Require().Nil(res)
 	s.Require().Error(err)
 
@@ -72,9 +73,9 @@ func (s *APISuite) TestPayOrderInternalError() {
 		expectdModel = converter.PayDtoToModel(req)
 	)
 
-	s.paymentService.On("PayOrder", s.ctx, expectdModel).Return("", repoErr)
+	s.paymentService.On("PayOrder", s.Ctx(), expectdModel).Return("", repoErr)
 
-	res, err := s.api.PayOrder(s.ctx, req)
+	res, err := s.api.PayOrder(s.Ctx(), req)
 	s.Require().Nil(res)
 	s.Require().Error(err)
 

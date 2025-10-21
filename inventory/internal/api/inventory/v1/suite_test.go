@@ -6,25 +6,26 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
-	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/service/mocks"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/service/mocks"
 )
 
 type APISuite struct {
 	suite.Suite
-
-	ctx context.Context
 
 	inventoryService *mocks.InventoryService
 
 	api *api
 }
 
-func (s *APISuite) SetupTest() {
-	s.ctx = context.Background()
+func (s *APISuite) Ctx() context.Context {
+	return context.Background()
+}
 
+func (s *APISuite) SetupTest() {
 	s.inventoryService = mocks.NewInventoryService(s.T())
 
 	s.api = NewAPI(
