@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/stretchr/testify/require"
+
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 	repoModel "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/model"
-	"github.com/stretchr/testify/require"
 )
 
 func TestCategoryToRepoCategory(t *testing.T) {
 	t.Run("CategoryToRepoCategory - returns default value for unknown category", func(t *testing.T) {
-
 		var category model.Category = 10
 		expected := repoModel.CategoryUnknown
 
@@ -20,7 +20,6 @@ func TestCategoryToRepoCategory(t *testing.T) {
 	})
 
 	t.Run("CategoryToRepoCategory - returns Engine value", func(t *testing.T) {
-
 		category := model.CategoryEngine
 		expected := repoModel.CategoryEngine
 
@@ -29,7 +28,6 @@ func TestCategoryToRepoCategory(t *testing.T) {
 	})
 
 	t.Run("CategoryToRepoCategory - returns Fuel value", func(t *testing.T) {
-
 		category := model.CategoryFuel
 		expected := repoModel.CategoryFuel
 
@@ -38,7 +36,6 @@ func TestCategoryToRepoCategory(t *testing.T) {
 	})
 
 	t.Run("CategoryToRepoCategory - returns Porthole value", func(t *testing.T) {
-
 		category := model.CategoryPorthole
 		expected := repoModel.CategoryPorthole
 
@@ -47,7 +44,6 @@ func TestCategoryToRepoCategory(t *testing.T) {
 	})
 
 	t.Run("CategoryToRepoCategory - returns Wing value", func(t *testing.T) {
-
 		category := model.CategoryWing
 		expected := repoModel.CategoryWing
 
@@ -58,7 +54,6 @@ func TestCategoryToRepoCategory(t *testing.T) {
 
 func TestRepoCategoryToCategory(t *testing.T) {
 	t.Run("RepoCategoryToCategory - returns default value for unknown category", func(t *testing.T) {
-
 		var category repoModel.Category = 10
 		expected := model.CategoryUnknown
 
@@ -67,7 +62,6 @@ func TestRepoCategoryToCategory(t *testing.T) {
 	})
 
 	t.Run("RepoCategoryToCategory - returns Engine value", func(t *testing.T) {
-
 		category := repoModel.CategoryEngine
 		expected := model.CategoryEngine
 
@@ -76,7 +70,6 @@ func TestRepoCategoryToCategory(t *testing.T) {
 	})
 
 	t.Run("RepoCategoryToCategory - returns Fuel value", func(t *testing.T) {
-
 		category := repoModel.CategoryFuel
 		expected := model.CategoryFuel
 
@@ -85,7 +78,6 @@ func TestRepoCategoryToCategory(t *testing.T) {
 	})
 
 	t.Run("RepoCategoryToCategory - returns Porthole value", func(t *testing.T) {
-
 		category := repoModel.CategoryPorthole
 		expected := model.CategoryPorthole
 
@@ -94,7 +86,6 @@ func TestRepoCategoryToCategory(t *testing.T) {
 	})
 
 	t.Run("RepoCategoryToCategory - returns Wing value", func(t *testing.T) {
-
 		category := repoModel.CategoryWing
 		expected := model.CategoryWing
 

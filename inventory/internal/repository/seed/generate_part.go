@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 	"github.com/samber/lo"
+
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 )
 
 func GeneratePart() model.Part {
