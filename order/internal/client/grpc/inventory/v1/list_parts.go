@@ -10,15 +10,12 @@ import (
 )
 
 func (c *inventoryServiceClient) ListParts(ctx context.Context, partsUUIDs []string) ([]model.Part, error) {
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.grpcTimeout)
-	defer cancel()
-
 	inventoryReq := &inventoryV1.ListPartsRequest{
 		Filter: &inventoryV1.PartsFilter{
 			Uuids: append([]string(nil), partsUUIDs...),
 		},
 	}
-	listParts, err := c.client.ListParts(ctxWithTimeout, inventoryReq)
+	listParts, err := c.client.ListParts(ctx, inventoryReq)
 	if err != nil {
 		log.Printf("failed client request: %v", err)
 		return nil, err

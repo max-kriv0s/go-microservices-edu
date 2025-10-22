@@ -8,26 +8,18 @@ import (
 )
 
 func OrderToRepoModel(order model.Order) (repoModel.Order, error) {
-	status, err := statusToRepoStatus(order.Status)
-	if err != nil {
-		return repoModel.Order{}, err
-	}
-
 	return repoModel.Order{
 		OrderUUID:     order.OrderUUID,
 		UserUUID:      order.UserUUID,
 		PartsUUIDs:    append([]string(nil), order.PartsUUIDs...),
 		TotalPrice:    order.TotalPrice,
-		PaymentMethod: paymentMethodToRepoPaymentMethod(order.PaymentMethod),
-		Status:        status,
+		PaymentMethod: PaymentMethodToRepoPaymentMethod(order.PaymentMethod),
+		Status:        StatusToRepoStatus(order.Status),
 	}, nil
 }
 
 func OrderToModel(repoOrder repoModel.Order) (model.Order, error) {
-	status, err := repoStatusToStatus(repoOrder.Status)
-	if err != nil {
-		return model.Order{}, err
-	}
+	status := repoStatusToStatus(repoOrder.Status)
 
 	return model.Order{
 		OrderUUID:     repoOrder.OrderUUID,
@@ -39,7 +31,7 @@ func OrderToModel(repoOrder repoModel.Order) (model.Order, error) {
 	}, nil
 }
 
-func paymentMethodToRepoPaymentMethod(method *model.PaymentMethod) *repoModel.PaymentMethod {
+func PaymentMethodToRepoPaymentMethod(method *model.PaymentMethod) *repoModel.PaymentMethod {
 	if method == nil {
 		return nil
 	}
@@ -77,28 +69,24 @@ func repoPaymentMethodToPaymentMethod(method *repoModel.PaymentMethod) *model.Pa
 	}
 }
 
-func statusToRepoStatus(status model.OrderStatus) (repoModel.OrderStatus, error) {
+func StatusToRepoStatus(status model.OrderStatus) repoModel.OrderStatus {
 	switch status {
-	case model.OrderStatusPendingPayment:
-		return repoModel.OrderStatusPendingPayment, nil
 	case model.OrderStatusPaid:
-		return repoModel.OrderStatusPaid, nil
+		return repoModel.OrderStatusPaid
 	case model.OrderStatusCancelled:
-		return repoModel.OrderStatusCancelled, nil
+		return repoModel.OrderStatusCancelled
 	default:
-		return repoModel.OrderStatusPendingPayment, model.ErrUnknownRepoOrderStatus
+		return repoModel.OrderStatusPendingPayment
 	}
 }
 
-func repoStatusToStatus(status repoModel.OrderStatus) (model.OrderStatus, error) {
+func repoStatusToStatus(status repoModel.OrderStatus) model.OrderStatus {
 	switch status {
-	case repoModel.OrderStatusPendingPayment:
-		return model.OrderStatusPendingPayment, nil
 	case repoModel.OrderStatusPaid:
-		return model.OrderStatusPaid, nil
+		return model.OrderStatusPaid
 	case repoModel.OrderStatusCancelled:
-		return model.OrderStatusCancelled, nil
+		return model.OrderStatusCancelled
 	default:
-		return model.OrderStatusPendingPayment, model.ErrUnknownRepoOrderStatus
+		return model.OrderStatusPendingPayment
 	}
 }
