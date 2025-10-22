@@ -5,6 +5,7 @@ go 1.24.5
 replace github.com/max-kriv0s/go-microservices-edu/shared => ../shared
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.8.0
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2

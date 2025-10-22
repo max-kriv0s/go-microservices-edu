@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/samber/lo"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
@@ -22,9 +23,10 @@ func (s *ServiceSuite) TestCancelOrderSuccess() {
 	)
 	s.orderRepository.On("Get", s.Ctx(), orderUUID).Return(order, nil)
 
-	updatedOrder := order
-	updatedOrder.Status = model.OrderStatusCancelled
-	s.orderRepository.On("Update", s.Ctx(), orderUUID, updatedOrder).Return(nil)
+	updateOrder := model.UpdateOrder{
+		Status: lo.ToPtr(model.OrderStatusCancelled),
+	}
+	s.orderRepository.On("Update", s.Ctx(), orderUUID, updateOrder).Return(nil)
 
 	err := s.service.CancelOrder(s.Ctx(), orderUUID)
 	s.Require().NoError(err)
@@ -98,9 +100,10 @@ func (s *ServiceSuite) TestCancelOrderupdatedError() {
 	)
 	s.orderRepository.On("Get", s.Ctx(), orderUUID).Return(order, nil)
 
-	updatedOrder := order
-	updatedOrder.Status = model.OrderStatusCancelled
-	s.orderRepository.On("Update", s.Ctx(), orderUUID, updatedOrder).Return(repoErr)
+	updateOrder := model.UpdateOrder{
+		Status: lo.ToPtr(model.OrderStatusCancelled),
+	}
+	s.orderRepository.On("Update", s.Ctx(), orderUUID, updateOrder).Return(repoErr)
 
 	err := s.service.CancelOrder(s.Ctx(), orderUUID)
 	s.Require().Error(err)

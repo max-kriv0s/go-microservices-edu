@@ -71,9 +71,9 @@ func (_c *InventoryRepository_Create_Call) RunAndReturn(run func(context.Context
 	return _c
 }
 
-// FindAll provides a mock function with given fields: ctx
-func (_m *InventoryRepository) FindAll(ctx context.Context) ([]model.Part, error) {
-	ret := _m.Called(ctx)
+// FindAll provides a mock function with given fields: ctx, filter
+func (_m *InventoryRepository) FindAll(ctx context.Context, filter *model.PartsFilter) ([]model.Part, error) {
+	ret := _m.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FindAll")
@@ -81,19 +81,19 @@ func (_m *InventoryRepository) FindAll(ctx context.Context) ([]model.Part, error
 
 	var r0 []model.Part
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]model.Part, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.PartsFilter) ([]model.Part, error)); ok {
+		return rf(ctx, filter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []model.Part); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, *model.PartsFilter) []model.Part); ok {
+		r0 = rf(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]model.Part)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, *model.PartsFilter) error); ok {
+		r1 = rf(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -108,13 +108,14 @@ type InventoryRepository_FindAll_Call struct {
 
 // FindAll is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *InventoryRepository_Expecter) FindAll(ctx interface{}) *InventoryRepository_FindAll_Call {
-	return &InventoryRepository_FindAll_Call{Call: _e.mock.On("FindAll", ctx)}
+//   - filter *model.PartsFilter
+func (_e *InventoryRepository_Expecter) FindAll(ctx interface{}, filter interface{}) *InventoryRepository_FindAll_Call {
+	return &InventoryRepository_FindAll_Call{Call: _e.mock.On("FindAll", ctx, filter)}
 }
 
-func (_c *InventoryRepository_FindAll_Call) Run(run func(ctx context.Context)) *InventoryRepository_FindAll_Call {
+func (_c *InventoryRepository_FindAll_Call) Run(run func(ctx context.Context, filter *model.PartsFilter)) *InventoryRepository_FindAll_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(*model.PartsFilter))
 	})
 	return _c
 }
@@ -124,7 +125,7 @@ func (_c *InventoryRepository_FindAll_Call) Return(_a0 []model.Part, _a1 error) 
 	return _c
 }
 
-func (_c *InventoryRepository_FindAll_Call) RunAndReturn(run func(context.Context) ([]model.Part, error)) *InventoryRepository_FindAll_Call {
+func (_c *InventoryRepository_FindAll_Call) RunAndReturn(run func(context.Context, *model.PartsFilter) ([]model.Part, error)) *InventoryRepository_FindAll_Call {
 	_c.Call.Return(run)
 	return _c
 }

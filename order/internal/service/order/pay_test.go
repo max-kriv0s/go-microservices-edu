@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/brianvoe/gofakeit/v7"
+	"github.com/samber/lo"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
@@ -25,12 +26,13 @@ func (s *ServiceSuite) TestPayOrderSuccess() {
 	s.orderRepository.On("Get", s.Ctx(), orderUUID).Return(order, nil)
 	s.paymentServiceClient.On("PayOrder", s.Ctx(), order, paymentMethod).Return(transactionUUID, nil)
 
-	paymentOrder := order
-	paymentOrder.Status = model.OrderStatusPaid
-	paymentOrder.PaymentMethod = &paymentMethod
-	paymentOrder.TransactionUUID = &transactionUUID
+	updateOrder := model.UpdateOrder{
+		Status:          lo.ToPtr(model.OrderStatusPaid),
+		PaymentMethod:   lo.ToPtr(paymentMethod),
+		TransactionUUID: lo.ToPtr(transactionUUID),
+	}
 
-	s.orderRepository.On("Update", s.Ctx(), orderUUID, paymentOrder).Return(nil)
+	s.orderRepository.On("Update", s.Ctx(), orderUUID, updateOrder).Return(nil)
 
 	res, err := s.service.PayOrder(s.Ctx(), orderUUID, paymentMethod)
 	s.Require().NoError(err)
@@ -144,12 +146,13 @@ func (s *ServiceSuite) TestPayOrderUpdatedError() {
 	s.orderRepository.On("Get", s.Ctx(), orderUUID).Return(order, nil)
 	s.paymentServiceClient.On("PayOrder", s.Ctx(), order, paymentMethod).Return(transactionUUID, nil)
 
-	paymentOrder := order
-	paymentOrder.Status = model.OrderStatusPaid
-	paymentOrder.PaymentMethod = &paymentMethod
-	paymentOrder.TransactionUUID = &transactionUUID
+	updateOrder := model.UpdateOrder{
+		Status:          lo.ToPtr(model.OrderStatusPaid),
+		PaymentMethod:   lo.ToPtr(paymentMethod),
+		TransactionUUID: lo.ToPtr(transactionUUID),
+	}
 
-	s.orderRepository.On("Update", s.Ctx(), orderUUID, paymentOrder).Return(repoErr)
+	s.orderRepository.On("Update", s.Ctx(), orderUUID, updateOrder).Return(repoErr)
 
 	res, err := s.service.PayOrder(s.Ctx(), orderUUID, paymentMethod)
 	s.Require().Empty(res)

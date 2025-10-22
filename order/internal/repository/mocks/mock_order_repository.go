@@ -138,17 +138,17 @@ func (_c *OrderRepository_Get_Call) RunAndReturn(run func(context.Context, strin
 	return _c
 }
 
-// Update provides a mock function with given fields: ctx, uuid, order
-func (_m *OrderRepository) Update(ctx context.Context, uuid string, order model.Order) error {
-	ret := _m.Called(ctx, uuid, order)
+// Update provides a mock function with given fields: ctx, uuid, updateOrder
+func (_m *OrderRepository) Update(ctx context.Context, uuid string, updateOrder model.UpdateOrder) error {
+	ret := _m.Called(ctx, uuid, updateOrder)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, model.Order) error); ok {
-		r0 = rf(ctx, uuid, order)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.UpdateOrder) error); ok {
+		r0 = rf(ctx, uuid, updateOrder)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -164,14 +164,14 @@ type OrderRepository_Update_Call struct {
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
 //   - uuid string
-//   - order model.Order
-func (_e *OrderRepository_Expecter) Update(ctx interface{}, uuid interface{}, order interface{}) *OrderRepository_Update_Call {
-	return &OrderRepository_Update_Call{Call: _e.mock.On("Update", ctx, uuid, order)}
+//   - updateOrder model.UpdateOrder
+func (_e *OrderRepository_Expecter) Update(ctx interface{}, uuid interface{}, updateOrder interface{}) *OrderRepository_Update_Call {
+	return &OrderRepository_Update_Call{Call: _e.mock.On("Update", ctx, uuid, updateOrder)}
 }
 
-func (_c *OrderRepository_Update_Call) Run(run func(ctx context.Context, uuid string, order model.Order)) *OrderRepository_Update_Call {
+func (_c *OrderRepository_Update_Call) Run(run func(ctx context.Context, uuid string, updateOrder model.UpdateOrder)) *OrderRepository_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(model.Order))
+		run(args[0].(context.Context), args[1].(string), args[2].(model.UpdateOrder))
 	})
 	return _c
 }
@@ -181,7 +181,7 @@ func (_c *OrderRepository_Update_Call) Return(_a0 error) *OrderRepository_Update
 	return _c
 }
 
-func (_c *OrderRepository_Update_Call) RunAndReturn(run func(context.Context, string, model.Order) error) *OrderRepository_Update_Call {
+func (_c *OrderRepository_Update_Call) RunAndReturn(run func(context.Context, string, model.UpdateOrder) error) *OrderRepository_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }

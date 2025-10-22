@@ -16,10 +16,7 @@ func (r *repository) Create(ctx context.Context, order model.Order) (string, err
 	if order.OrderUUID == "" {
 		order.OrderUUID = uuid.NewString()
 	}
-	repoOrder, err := repoConverter.OrderToRepoModel(order)
-	if err != nil {
-		return "", err
-	}
+	repoOrder := repoConverter.OrderToRepoModel(order)
 
 	r.data[order.OrderUUID] = repoOrder
 

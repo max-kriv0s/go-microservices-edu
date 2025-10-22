@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
@@ -45,10 +44,8 @@ func fakePart() model.Part {
 
 	category := model.CategoryEngine
 
-	metadata := make(map[string]*model.Value)
-
-	key := gofakeit.Word()
-	metadata[key] = &model.Value{String: lo.ToPtr(gofakeit.Word())}
+	metadata := make(map[string]any)
+	metadata["string"] = gofakeit.Word()
 
 	tagsCount := gofakeit.Number(1, 5)
 	tags := make([]string, tagsCount)

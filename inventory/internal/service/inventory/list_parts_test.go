@@ -12,9 +12,11 @@ func (s *ServiceSuite) TestListPartsReturnAllParts() {
 		part2 = fakePart()
 
 		parts = []model.Part{part1, part2}
+
+		filter = (*model.PartsFilter)(nil)
 	)
 
-	s.inventoryRepository.On("FindAll", s.Ctx()).Return(parts, nil)
+	s.inventoryRepository.On("FindAll", s.Ctx(), filter).Return(parts, nil)
 
 	res, err := s.service.ListParts(s.Ctx(), nil)
 
@@ -26,9 +28,8 @@ func (s *ServiceSuite) TestListPartsReturnAllParts() {
 func (s *ServiceSuite) TestListPartsSuccess() {
 	var (
 		part1 = fakePart()
-		part2 = fakePart()
 
-		parts  = []model.Part{part1, part2}
+		parts  = []model.Part{part1}
 		filter = &model.PartsFilter{
 			Uuids: []string{part1.Uuid},
 		}
@@ -36,7 +37,7 @@ func (s *ServiceSuite) TestListPartsSuccess() {
 		expectedParts = []model.Part{part1}
 	)
 
-	s.inventoryRepository.On("FindAll", s.Ctx()).Return(parts, nil)
+	s.inventoryRepository.On("FindAll", s.Ctx(), filter).Return(parts, nil)
 
 	res, err := s.service.ListParts(s.Ctx(), filter)
 
@@ -50,9 +51,10 @@ func (s *ServiceSuite) TestListPartsError() {
 	var (
 		repoErr     = gofakeit.Error()
 		expectedErr = model.ErrInternalServer
+		filter      = (*model.PartsFilter)(nil)
 	)
 
-	s.inventoryRepository.On("FindAll", s.Ctx()).Return(nil, repoErr)
+	s.inventoryRepository.On("FindAll", s.Ctx(), filter).Return(nil, repoErr)
 
 	res, err := s.service.ListParts(s.Ctx(), nil)
 	s.Require().Nil(res)

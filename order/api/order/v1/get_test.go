@@ -85,36 +85,3 @@ func (s *APISuite) TestAPIV1OrdersOrderUUIDGetInternalError() {
 	resErr := res.(*orderV1.InternalServerError)
 	s.Require().Equal(expectedCode, resErr.Code)
 }
-
-func (s *APISuite) TestAPIV1OrdersOrderUUIDGetConvertError() {
-	var (
-		expectedCode = http.StatusInternalServerError
-
-		orderUUID  = uuid.New()
-		userUUID   = gofakeit.UUID()
-		partsUUIDs = []string{gofakeit.UUID()}
-
-		param = orderV1.APIV1OrdersOrderUUIDGetParams{
-			OrderUUID: orderUUID,
-		}
-
-		order = model.Order{
-			OrderUUID:  orderUUID.String(),
-			UserUUID:   userUUID,
-			PartsUUIDs: partsUUIDs,
-			TotalPrice: 100,
-			Status:     "Test",
-		}
-	)
-
-	s.orderService.On("GetOrder", s.Ctx(), orderUUID.String()).Return(order, nil)
-
-	res, err := s.api.APIV1OrdersOrderUUIDGet(s.Ctx(), param)
-	s.Require().NoError(err)
-	s.Require().NotEmpty(res)
-
-	s.Require().IsType(&orderV1.InternalServerError{}, res)
-
-	resErr := res.(*orderV1.InternalServerError)
-	s.Require().Equal(expectedCode, resErr.Code)
-}

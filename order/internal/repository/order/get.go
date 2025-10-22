@@ -15,9 +15,6 @@ func (r *repository) Get(ctx context.Context, uuid string) (model.Order, error) 
 	if !ok {
 		return model.Order{}, model.ErrOrderNotFound
 	}
-	order, err := repoConverter.OrderToModel(repoOrder)
-	if err != nil {
-		return model.Order{}, err
-	}
-	return order, nil
+
+	return repoConverter.OrderToModel(repoOrder), nil
 }
