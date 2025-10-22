@@ -22,7 +22,7 @@ type Part struct {
 	// Теги для быстрого поиска
 	Tags []string
 	// Гибкие метаданные
-	Metadata map[string]*Value
+	Metadata map[string]any
 	// Дата создания
 	CreatedAt *time.Time
 	// Дата обновления
@@ -62,13 +62,6 @@ type Manufacturer struct {
 	Country string
 	// Сайт производителя
 	Website string
-}
-
-type Value struct {
-	String *string
-	Int64  *int64
-	Double *float64
-	Bool   *bool
 }
 
 type PartsFilter struct {

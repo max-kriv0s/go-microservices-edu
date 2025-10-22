@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+
+	"github.com/samber/lo"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
@@ -14,6 +17,9 @@ func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod 
 		if errors.Is(err, model.ErrOrderNotFound) {
 			return "", model.ErrOrderNotFound
 		}
+
+		log.Printf("[service.PayOrder] internal error pay order (uuid=%s): %v", orderUUID, err)
+
 		return "", model.ErrInternalServer
 	}
 
@@ -26,11 +32,13 @@ func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod 
 		return "", model.ErrInternalServer
 	}
 
-	order.Status = model.OrderStatusPaid
-	order.PaymentMethod = &paymentMethod
-	order.TransactionUUID = &transactionUUID
+	updateOrder := model.UpdateOrder{
+		Status:          lo.ToPtr(model.OrderStatusPaid),
+		PaymentMethod:   lo.ToPtr(paymentMethod),
+		TransactionUUID: lo.ToPtr(transactionUUID),
+	}
 
-	err = s.orderRepository.Update(ctx, order.OrderUUID, order)
+	err = s.orderRepository.Update(ctx, order.OrderUUID, updateOrder)
 	if err != nil {
 		return "", model.ErrInternalServer
 	}

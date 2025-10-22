@@ -1,8 +1,6 @@
 package converter
 
 import (
-	"fmt"
-
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 )
@@ -47,10 +45,7 @@ func OrderToGetResponseDto(order model.Order) (orderV1.APIV1OrdersOrderUUIDGetRe
 		paymentMethod = orderV1.NewOptPaymentMethod(paymentMethodToApiPaymentMethod(*order.PaymentMethod))
 	}
 
-	status, err := statusToApiStatus(order.Status)
-	if err != nil {
-		return nil, err
-	}
+	status := statusToApiStatus(order.Status)
 
 	return &orderV1.GetOrderResponseDto{
 		OrderUUID:       order.OrderUUID,
@@ -78,15 +73,13 @@ func paymentMethodToApiPaymentMethod(method model.PaymentMethod) orderV1.Payment
 	}
 }
 
-func statusToApiStatus(status model.OrderStatus) (orderV1.OrderStatus, error) {
+func statusToApiStatus(status model.OrderStatus) orderV1.OrderStatus {
 	switch status {
-	case model.OrderStatusPendingPayment:
-		return orderV1.OrderStatusPENDINGPAYMENT, nil
 	case model.OrderStatusPaid:
-		return orderV1.OrderStatusPAID, nil
+		return orderV1.OrderStatusPAID
 	case model.OrderStatusCancelled:
-		return orderV1.OrderStatusCANCELLED, nil
+		return orderV1.OrderStatusCANCELLED
 	default:
-		return "", fmt.Errorf("unknown order status: %s", status)
+		return orderV1.OrderStatusPENDINGPAYMENT
 	}
 }

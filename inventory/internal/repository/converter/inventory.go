@@ -125,50 +125,28 @@ func repoManufacturerToManufacturer(manufacturer *repoModel.Manufacturer) *model
 	return lo.ToPtr(model)
 }
 
-func metadataToRepoMetadata(metadata map[string]*model.Value) map[string]*repoModel.Value {
-	repoMetadata := make(map[string]*repoModel.Value, len(metadata))
-
-	for key, value := range metadata {
-		repoMetadata[key] = valueToRepoValue(value)
-	}
-	return repoMetadata
-}
-
-func repoMetadataToMetadata(metadata map[string]*repoModel.Value) map[string]*model.Value {
+func metadataToRepoMetadata(metadata map[string]any) map[string]any {
 	if metadata == nil {
 		return nil
 	}
 
-	repoMetadata := make(map[string]*model.Value, len(metadata))
-
+	repoMetadata := make(map[string]any, len(metadata))
 	for key, value := range metadata {
-		repoMetadata[key] = repoValueToValue(value)
+		repoMetadata[key] = value
 	}
+
 	return repoMetadata
 }
 
-func valueToRepoValue(value *model.Value) *repoModel.Value {
-	if value == nil {
+func repoMetadataToMetadata(metadata map[string]any) map[string]any {
+	if metadata == nil {
 		return nil
 	}
 
-	return &repoModel.Value{
-		String: value.String,
-		Int64:  value.Int64,
-		Double: value.Double,
-		Bool:   value.Bool,
-	}
-}
-
-func repoValueToValue(value *repoModel.Value) *model.Value {
-	if value == nil {
-		return nil
+	repoMetadata := make(map[string]any, len(metadata))
+	for key, value := range metadata {
+		repoMetadata[key] = value
 	}
 
-	return &model.Value{
-		String: value.String,
-		Int64:  value.Int64,
-		Double: value.Double,
-		Bool:   value.Bool,
-	}
+	return repoMetadata
 }

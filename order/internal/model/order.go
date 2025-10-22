@@ -10,6 +10,15 @@ type Order struct {
 	Status          OrderStatus
 }
 
+type UpdateOrder struct {
+	UserUUID        *string
+	PartsUUIDs      *[]string
+	TotalPrice      *float64
+	TransactionUUID *string
+	PaymentMethod   *PaymentMethod
+	Status          *OrderStatus
+}
+
 type PaymentMethod string
 
 const (

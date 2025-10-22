@@ -16,10 +16,8 @@ func (a *api) ListParts(ctx context.Context, req *inventoryV1.ListPartsRequest) 
 		return nil, status.Errorf(codes.Internal, "unknown error: %v", err)
 	}
 
-	protoParts := make([]*inventoryV1.Part, len(parts))
-	for i, part := range parts {
-		protoParts[i] = converter.PartToProto(part)
-	}
+	protoParts := converter.PartsToProto(parts)
+
 	return &inventoryV1.ListPartsResponse{
 		Parts: protoParts,
 	}, nil

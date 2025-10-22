@@ -9,9 +9,6 @@ import (
 )
 
 func (c *paymentServiceClient) PayOrder(ctx context.Context, order model.Order, paymentMethod model.PaymentMethod) (string, error) {
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.grpcTimeout)
-	defer cancel()
-
 	grpcPaymentMethod, err := ConvertPaymentMethodToGRPC(paymentMethod)
 	if err != nil {
 		return "", err
@@ -23,7 +20,7 @@ func (c *paymentServiceClient) PayOrder(ctx context.Context, order model.Order, 
 		PaymentMethod: grpcPaymentMethod,
 	}
 
-	res, err := c.client.PayOrder(ctxWithTimeout, paymentReq)
+	res, err := c.client.PayOrder(ctx, paymentReq)
 	if err != nil {
 		return "", err
 	}

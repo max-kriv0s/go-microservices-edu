@@ -31,7 +31,7 @@ func generatePart() model.Part {
 	category := model.Category(rand.Int31n(int32(model.CategoryWing)) + 1)
 
 	// Заполняем map metadata с несколькими парами
-	metadata := make(map[string]*model.Value)
+	metadata := make(map[string]any)
 	for i := 0; i < 3; i++ {
 		key := gofakeit.Word()
 		metadata[key] = randomValue()
@@ -71,16 +71,16 @@ func generatePart() model.Part {
 	return part
 }
 
-func randomValue() *model.Value {
+func randomValue() any {
 	//nolint:gosec // Используем math/rand для некритичных целей, OK
 	switch rand.Intn(4) {
 	case 0:
-		return &model.Value{String: lo.ToPtr(gofakeit.Word())}
+		return lo.ToPtr(gofakeit.Word())
 	case 1:
-		return &model.Value{Int64: lo.ToPtr(gofakeit.Int64())}
+		return lo.ToPtr(gofakeit.Int64())
 	case 2:
-		return &model.Value{Double: lo.ToPtr(gofakeit.Float64())}
+		return lo.ToPtr(gofakeit.Float64())
 	default:
-		return &model.Value{Bool: lo.ToPtr(gofakeit.Bool())}
+		return lo.ToPtr(gofakeit.Bool())
 	}
 }

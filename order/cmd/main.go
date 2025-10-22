@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -22,6 +23,8 @@ import (
 	orderRepository "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/order"
 	orderService "github.com/max-kriv0s/go-microservices-edu/order/internal/service/order"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
+	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
+	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 )
 
 const (
@@ -32,12 +35,16 @@ const (
 	serverPort        = "8080"
 	readHeaderTimeout = 5 * time.Second
 	shutdownTimeout   = 10 * time.Second
+	grpcTimeout       = 5 * time.Second
 )
 
 func main() {
 	inventoryConn, err := grpc.NewClient(
 		inventoryUrl,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(
+			timeout.UnaryClientInterceptor(grpcTimeout),
+		),
 	)
 	if err != nil {
 		log.Printf("failed to connect to inventory service: %v", err)
@@ -52,6 +59,9 @@ func main() {
 	paymentConn, err := grpc.NewClient(
 		paymentUrl,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(
+			timeout.UnaryClientInterceptor(grpcTimeout),
+		),
 	)
 	if err != nil {
 		log.Printf("failed to connect to payment service: %v", err)
@@ -63,11 +73,12 @@ func main() {
 		}
 	}()
 
-	inventoryClient := inventoryClient.NewInventoryServiceClient(inventoryConn)
-	paymentClient := paymentClient.NewPaymentServiceClient(paymentConn)
+	inventoryServiceClient := inventoryClient.NewInventoryServiceClient(inventoryV1.NewInventoryServiceClient(inventoryConn))
+
+	paymentServiceClient := paymentClient.NewPaymentServiceClient(paymentV1.NewPaymentServiceClient(paymentConn))
 
 	orderRepository := orderRepository.NewRepository()
-	orderService := orderService.NewService(inventoryClient, paymentClient, orderRepository)
+	orderService := orderService.NewService(inventoryServiceClient, paymentServiceClient, orderRepository)
 
 	orderApi := orderV1Api.NewAPI(orderService)
 

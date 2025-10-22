@@ -34,6 +34,14 @@ func PartToProto(part model.Part) *inventoryV1.Part {
 	}
 }
 
+func PartsToProto(parts []model.Part) []*inventoryV1.Part {
+	protoParts := make([]*inventoryV1.Part, len(parts))
+	for i, part := range parts {
+		protoParts[i] = PartToProto(part)
+	}
+	return protoParts
+}
+
 func categoryToProto(category model.Category) inventoryV1.Category {
 	switch category {
 	case model.CategoryEngine:
@@ -73,35 +81,27 @@ func manufacturerToProto(manufacturer *model.Manufacturer) *inventoryV1.Manufact
 	}
 }
 
-func metadataToProto(metadata map[string]*model.Value) map[string]*inventoryV1.Value {
+func metadataToProto(metadata map[string]any) map[string]*inventoryV1.Value {
 	if metadata == nil {
 		return nil
 	}
 
 	protoMetadata := make(map[string]*inventoryV1.Value, len(metadata))
 	for key, value := range metadata {
-		protoMetadata[key] = valueToProto(value)
+		switch val := value.(type) {
+		case string:
+			protoMetadata[key] = &inventoryV1.Value{Value: &inventoryV1.Value_StringValue{StringValue: val}}
+		case int64:
+			protoMetadata[key] = &inventoryV1.Value{Value: &inventoryV1.Value_Int64Value{Int64Value: val}}
+		case float64:
+			protoMetadata[key] = &inventoryV1.Value{Value: &inventoryV1.Value_DoubleValue{DoubleValue: val}}
+		case bool:
+			protoMetadata[key] = &inventoryV1.Value{Value: &inventoryV1.Value_BoolValue{BoolValue: val}}
+		default:
+			return nil
+		}
 	}
 	return protoMetadata
-}
-
-func valueToProto(value *model.Value) *inventoryV1.Value {
-	if value == nil {
-		return nil
-	}
-
-	switch {
-	case value.String != nil:
-		return &inventoryV1.Value{Value: &inventoryV1.Value_StringValue{StringValue: *value.String}}
-	case value.Int64 != nil:
-		return &inventoryV1.Value{Value: &inventoryV1.Value_Int64Value{Int64Value: *value.Int64}}
-	case value.Double != nil:
-		return &inventoryV1.Value{Value: &inventoryV1.Value_DoubleValue{DoubleValue: *value.Double}}
-	case value.Bool != nil:
-		return &inventoryV1.Value{Value: &inventoryV1.Value_BoolValue{BoolValue: *value.Bool}}
-	default:
-		return nil
-	}
 }
 
 func PartsFilterToModel(filter *inventoryV1.PartsFilter) *model.PartsFilter {
