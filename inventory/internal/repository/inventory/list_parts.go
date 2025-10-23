@@ -8,7 +8,7 @@ import (
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/converter"
 )
 
-func (r *repository) FindAll(ctx context.Context, filter *model.PartsFilter) ([]model.Part, error) {
+func (r *repository) ListParts(ctx context.Context, filter *model.PartsFilter) ([]model.Part, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
