@@ -3,7 +3,6 @@ package v1
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/stretchr/testify/suite"
@@ -40,7 +39,7 @@ func TestAPIIntegration(t *testing.T) {
 }
 
 func fakePart() model.Part {
-	now := time.Now()
+	now := gofakeit.Date()
 
 	category := model.CategoryEngine
 
