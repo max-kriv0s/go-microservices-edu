@@ -7,7 +7,7 @@ import (
 	repoModel "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/model"
 )
 
-func OrderToRepoModel(order model.Order) (repoModel.Order, error) {
+func OrderToRepoModel(order model.Order) repoModel.Order {
 	return repoModel.Order{
 		OrderUUID:     order.OrderUUID,
 		UserUUID:      order.UserUUID,
@@ -15,20 +15,18 @@ func OrderToRepoModel(order model.Order) (repoModel.Order, error) {
 		TotalPrice:    order.TotalPrice,
 		PaymentMethod: PaymentMethodToRepoPaymentMethod(order.PaymentMethod),
 		Status:        StatusToRepoStatus(order.Status),
-	}, nil
+	}
 }
 
-func OrderToModel(repoOrder repoModel.Order) (model.Order, error) {
-	status := repoStatusToStatus(repoOrder.Status)
-
+func OrderToModel(repoOrder repoModel.Order) model.Order {
 	return model.Order{
 		OrderUUID:     repoOrder.OrderUUID,
 		UserUUID:      repoOrder.UserUUID,
 		PartsUUIDs:    append([]string(nil), repoOrder.PartsUUIDs...),
 		TotalPrice:    repoOrder.TotalPrice,
 		PaymentMethod: repoPaymentMethodToPaymentMethod(repoOrder.PaymentMethod),
-		Status:        status,
-	}, nil
+		Status:        repoStatusToStatus(repoOrder.Status),
+	}
 }
 
 func PaymentMethodToRepoPaymentMethod(method *model.PaymentMethod) *repoModel.PaymentMethod {
