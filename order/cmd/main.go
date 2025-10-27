@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -14,12 +15,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	orderV1Api "github.com/max-kriv0s/go-microservices-edu/order/api/order/v1"
 	inventoryClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/payment/v1"
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/migrator"
 	orderRepository "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/order"
 	orderService "github.com/max-kriv0s/go-microservices-edu/order/internal/service/order"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
@@ -39,6 +45,14 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Printf("failed to load .env file: %v\n", err)
+		return
+	}
+
 	inventoryConn, err := grpc.NewClient(
 		inventoryUrl,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -77,7 +91,60 @@ func main() {
 
 	paymentServiceClient := paymentClient.NewPaymentServiceClient(paymentV1.NewPaymentServiceClient(paymentConn))
 
-	orderRepository := orderRepository.NewRepository()
+	dbName := os.Getenv("ORDER_DB_DATABASE")
+	dbUser := os.Getenv("ORDER_DB_USER")
+	dbPassword := os.Getenv("ORDER_DB_PASSWORD")
+	dbHost := os.Getenv("ORDER_DB_HOST")
+	dbPort := os.Getenv("ORDER_DB_PORT")
+
+	dbURI := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+
+	// Создаем соединение с базой данных для миграции
+	con, err := pgx.Connect(ctx, dbURI)
+	if err != nil {
+		log.Printf("failed to connect to database: %v\n", err)
+		return
+	}
+	defer func() {
+		cerr := con.Close(ctx)
+		if cerr != nil {
+			log.Printf("failed to close connection: %v\n", cerr)
+		}
+	}()
+
+	// Проверяем, что соединение с базой установлено
+	err = con.Ping(ctx)
+	if err != nil {
+		log.Printf("База данных недоступна: %v\n", err)
+		return
+	}
+
+	// Инициализируем мигратор
+	migrationsDir := os.Getenv("MIGRATIONS_DIR")
+	migratorRunner := migrator.NewMigrator(stdlib.OpenDB(*con.Config().Copy()), migrationsDir)
+
+	err = migratorRunner.Up()
+	if err != nil {
+		log.Printf("Ошибка миграции базы данных: %v\n", err)
+		return
+	}
+
+	// Создаем пул соединений с базой данных
+	dbPool, err := pgxpool.New(ctx, dbURI)
+	if err != nil {
+		log.Printf("failed to connect to database: %v\n", err)
+		return
+	}
+	defer dbPool.Close()
+
+	// Проверяем, что соединение с базой установлено
+	err = dbPool.Ping(ctx)
+	if err != nil {
+		log.Printf("База данных недоступна: %v\n", err)
+		return
+	}
+
+	orderRepository := orderRepository.NewRepository(dbPool)
 	orderService := orderService.NewService(inventoryServiceClient, paymentServiceClient, orderRepository)
 
 	orderApi := orderV1Api.NewAPI(orderService)
