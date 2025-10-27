@@ -2,6 +2,8 @@ package order
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/jackc/pgx/v5"
 
@@ -16,7 +18,11 @@ func (r *repository) Create(ctx context.Context, order model.Order) (string, err
 	if err != nil {
 		return "", err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			log.Printf("tx rollback failed: %v", err)
+		}
+	}()
 
 	var orderId string
 	err = tx.QueryRow(ctx, "INSERT INTO orders (user_id, total_price, status) VALUES ($1, $2, $3) RETURNING id", repoOrder.UserUUID, repoOrder.TotalPrice, repoOrder.Status).Scan(&orderId)

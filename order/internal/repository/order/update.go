@@ -3,11 +3,12 @@ package order
 import (
 	"context"
 	"errors"
-
-	"github.com/jackc/pgx/v5"
-	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
+	"log"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
+
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/converter"
 )
 
@@ -15,7 +16,7 @@ func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.
 	var foundOrderId string
 	err := r.dbPool.QueryRow(ctx, "SELECT id FROM orders WHERE orders.id = $1", uuid).Scan(&foundOrderId)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return model.ErrOrderNotFound
 		}
 		return err
@@ -25,7 +26,11 @@ func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx)
+	defer func() {
+		if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
+			log.Printf("tx rollback failed: %v", err)
+		}
+	}()
 
 	builderUpdate := sq.Update("orders").PlaceholderFormat(sq.Dollar).Where(sq.Eq{"id": uuid})
 
