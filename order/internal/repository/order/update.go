@@ -12,9 +12,18 @@ import (
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/converter"
 )
 
-func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.UpdateOrder) error {
+func (r *repository) Update(ctx context.Context, orderUUUiD string, updateOrder model.UpdateOrder) error {
+	builderFoundOrder := sq.Select(orderUuidColumn).From(ordersTable).PlaceholderFormat(sq.Dollar).
+		Where(sq.Eq{orderUuidColumn: orderUUUiD}).
+		Limit(1)
+
+	query, args, err := builderFoundOrder.ToSql()
+	if err != nil {
+		return err
+	}
+
 	var foundOrderId string
-	err := r.dbPool.QueryRow(ctx, "SELECT id FROM orders WHERE orders.id = $1", uuid).Scan(&foundOrderId)
+	err = r.dbPool.QueryRow(ctx, query, args...).Scan(&foundOrderId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.ErrOrderNotFound
@@ -32,31 +41,31 @@ func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.
 		}
 	}()
 
-	builderUpdate := sq.Update("orders").PlaceholderFormat(sq.Dollar).Where(sq.Eq{"id": uuid})
+	builderUpdate := sq.Update(ordersTable).PlaceholderFormat(sq.Dollar).Where(sq.Eq{orderUuidColumn: orderUUUiD})
 
 	hasUpdates := false
 	if updateOrder.UserUUID != nil {
-		builderUpdate = builderUpdate.Set("user_id", *updateOrder.UserUUID)
+		builderUpdate = builderUpdate.Set(orderUserUUIDColumn, *updateOrder.UserUUID)
 		hasUpdates = true
 	}
 
 	if updateOrder.TotalPrice != nil {
-		builderUpdate = builderUpdate.Set("total_price", *updateOrder.TotalPrice)
+		builderUpdate = builderUpdate.Set(orderTotalPriceColumn, *updateOrder.TotalPrice)
 		hasUpdates = true
 	}
 
 	if updateOrder.TransactionUUID != nil {
-		builderUpdate = builderUpdate.Set("transaction_uuid", updateOrder.TransactionUUID)
+		builderUpdate = builderUpdate.Set(orderTransactionUUIDColumn, updateOrder.TransactionUUID)
 		hasUpdates = true
 	}
 
 	if updateOrder.PaymentMethod != nil {
-		builderUpdate = builderUpdate.Set("payment_method", repoConverter.PaymentMethodToRepoPaymentMethod(updateOrder.PaymentMethod))
+		builderUpdate = builderUpdate.Set(orderPaymentMethodColumn, repoConverter.PaymentMethodToRepoPaymentMethod(updateOrder.PaymentMethod))
 		hasUpdates = true
 	}
 
 	if updateOrder.Status != nil {
-		builderUpdate = builderUpdate.Set("status", repoConverter.StatusToRepoStatus(*updateOrder.Status))
+		builderUpdate = builderUpdate.Set(orderStatusColumn, repoConverter.StatusToRepoStatus(*updateOrder.Status))
 		hasUpdates = true
 	}
 
@@ -64,7 +73,7 @@ func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.
 		return errors.New("no fields to update")
 	}
 
-	query, args, err := builderUpdate.ToSql()
+	query, args, err = builderUpdate.ToSql()
 	if err != nil {
 		return err
 	}
@@ -75,7 +84,16 @@ func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.
 	}
 
 	if updateOrder.PartsUUIDs != nil {
-		_, err := tx.Exec(ctx, "DELETE FROM order_items WHERE order_id = $1", uuid)
+		builderDelete := sq.Delete(ordersTable).
+			PlaceholderFormat(sq.Dollar).
+			Where(sq.Eq{orderUuidColumn: orderUUUiD})
+
+		query, args, err = builderDelete.ToSql()
+		if err != nil {
+			return err
+		}
+
+		_, err := tx.Exec(ctx, query, args...)
 		if err != nil {
 			return err
 		}
@@ -83,13 +101,13 @@ func (r *repository) Update(ctx context.Context, uuid string, updateOrder model.
 		if len(*updateOrder.PartsUUIDs) > 0 {
 			rows := make([][]interface{}, len(*updateOrder.PartsUUIDs))
 			for i, partUUID := range *updateOrder.PartsUUIDs {
-				rows[i] = []interface{}{uuid, partUUID}
+				rows[i] = []interface{}{orderUUUiD, partUUID}
 			}
 
 			_, err := tx.CopyFrom(
 				ctx,
-				pgx.Identifier{"order_items"},
-				[]string{"order_id", "part_uuid"},
+				pgx.Identifier{orderItemTable},
+				[]string{itemOrderUuid, itemPartUuidColumn},
 				pgx.CopyFromRows(rows),
 			)
 			if err != nil {

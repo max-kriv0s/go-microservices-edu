@@ -5,8 +5,8 @@ import (
 	"errors"
 	"log"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
-
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/converter"
 )
@@ -24,10 +24,17 @@ func (r *repository) Create(ctx context.Context, order model.Order) (string, err
 		}
 	}()
 
-	var orderId string
-	err = tx.QueryRow(ctx, "INSERT INTO orders (user_id, total_price, status) VALUES ($1, $2, $3) RETURNING id", repoOrder.UserUUID, repoOrder.TotalPrice, repoOrder.Status).Scan(&orderId)
+	builderInsert := sq.Insert(ordersTable).PlaceholderFormat(sq.Dollar).Columns(orderUserUUIDColumn, orderTotalPriceColumn, orderStatusColumn).Values(repoOrder.UserUUID, repoOrder.TotalPrice, repoOrder.Status).Suffix("RETURNING " + orderUuidColumn)
+
+	query, args, err := builderInsert.ToSql()
 	if err != nil {
-		return "", err
+		return "", nil
+	}
+
+	var orderId string
+	err = r.dbPool.QueryRow(ctx, query, args...).Scan(&orderId)
+	if err != nil {
+		return "", nil
 	}
 
 	if len(repoOrder.PartsUUIDs) > 0 {
@@ -38,8 +45,8 @@ func (r *repository) Create(ctx context.Context, order model.Order) (string, err
 
 		_, err := tx.CopyFrom(
 			ctx,
-			pgx.Identifier{"order_items"},
-			[]string{"order_id", "part_uuid"},
+			pgx.Identifier{orderItemTable},
+			[]string{itemOrderUuid, itemPartUuidColumn},
 			pgx.CopyFromRows(rows),
 		)
 		if err != nil {

@@ -1,13 +1,13 @@
 package model
 
 type Order struct {
-	OrderUUID       string `db:"id"`
-	UserUUID        string `db:"user_id"`
+	OrderUUID       string
+	UserUUID        string
 	PartsUUIDs      []string
-	TotalPrice      float64        `db:"total_price"`
-	TransactionUUID *string        `db:"transaction_uuid"`
-	PaymentMethod   *PaymentMethod `db:"payment_method"`
-	Status          OrderStatus    `db:"status"`
+	TotalPrice      float64
+	TransactionUUID *string
+	PaymentMethod   *PaymentMethod
+	Status          OrderStatus
 }
 
 type PaymentMethod string
