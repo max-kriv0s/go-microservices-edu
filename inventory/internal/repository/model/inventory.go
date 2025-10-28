@@ -1,32 +1,37 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Part struct {
+	ID primitive.ObjectID `bson:"_id,omitempty"`
 	// Уникальный идентификатор детали
-	Uuid string
+	Uuid string `bson:"uuid"`
 	// Название детали
-	Name string
+	Name string `bson:"name"`
 	// Описание детали
-	Description string
+	Description string `bson:"description"`
 	// Цена за единицу
-	Price float64
+	Price float64 `bson:"price"`
 	// Количество на складе
-	StockQuantity int64
+	StockQuantity int64 `bson:"stock_quantity"`
 	// Категория
-	Category Category
+	Category Category `bson:"category"`
 	// Размеры детали
-	Dimensions *Dimensions
+	Dimensions *Dimensions `bson:"dimensions,omitempty"`
 	// Информация о производителе
-	Manufacturer *Manufacturer
+	Manufacturer *Manufacturer `bson:"manufacturer,omitempty"`
 	// Теги для быстрого поиска
-	Tags []string
+	Tags []string `bson:"tags,omitempty"`
 	// Гибкие метаданные
-	Metadata map[string]any
+	Metadata map[string]any `bson:"metadate,omitempty"`
 	// Дата создания
-	CreatedAt *time.Time
+	CreatedAt *time.Time `bson:"created_at,omitempty"`
 	// Дата обновления
-	UpdatedAt *time.Time
+	UpdatedAt *time.Time `bson:"updated_at,omitempty"`
 }
 
 type Category int32
@@ -46,20 +51,20 @@ const (
 
 type Dimensions struct {
 	// Длина в см
-	Length float64
+	Length float64 `bson:"length"`
 	// Ширина в см
-	Width float64
+	Width float64 `bson:"width"`
 	// Высота в см
-	Height float64
+	Height float64 `bson:"height"`
 	// Вес в кг
-	Weight float64
+	Weight float64 `bson:"weight"`
 }
 
 type Manufacturer struct {
 	// Название
-	Name string
+	Name string `bson:"name"`
 	// Страна производства
-	Country string
+	Country string `bson:"country"`
 	// Сайт производителя
-	Website string
+	Website string `bson:"website"`
 }

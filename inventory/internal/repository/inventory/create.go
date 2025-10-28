@@ -7,11 +7,13 @@ import (
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/converter"
 )
 
-func (r *repository) Create(_ context.Context, part model.Part) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (r *repository) Create(ctx context.Context, part model.Part) error {
+	repoPart := repoConverter.PartToRepoModel(part)
 
-	r.data[part.Uuid] = repoConverter.PartToRepoModel(part)
+	_, err := r.collection.InsertOne(ctx, repoPart)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

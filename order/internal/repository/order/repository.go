@@ -1,21 +1,42 @@
 package order
 
 import (
-	"sync"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	def "github.com/max-kriv0s/go-microservices-edu/order/internal/repository"
-	repoModel "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/model"
 )
 
 var _ def.OrderRepository = (*repository)(nil)
 
+const (
+	ordersTable = "orders"
+
+	orderUuidColumn            = "id"
+	orderUserUUIDColumn        = "user_id"
+	orderTotalPriceColumn      = "total_price"
+	orderTransactionUUIDColumn = "transaction_uuid"
+	orderPaymentMethodColumn   = "payment_method"
+	orderStatusColumn          = "status"
+
+	orderItemTable = "order_items"
+
+	itemOrderUuid      = "order_id"
+	itemPartUuidColumn = "part_uuid"
+)
+
 type repository struct {
-	mu   sync.RWMutex
-	data map[string]repoModel.Order
+	dbPool *pgxpool.Pool
 }
 
-func NewRepository() *repository {
+func NewRepository(dbPool *pgxpool.Pool) *repository {
 	return &repository{
-		data: make(map[string]repoModel.Order, 0),
+		dbPool: dbPool,
 	}
+}
+
+func col(alias, column string) string {
+	if alias == "" {
+		return column
+	}
+	return alias + "." + column
 }

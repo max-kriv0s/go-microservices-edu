@@ -2,68 +2,64 @@ package inventory
 
 import (
 	"context"
-	"slices"
+	"log"
+
+	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/converter"
+	repoModel "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/model"
 )
 
 func (r *repository) ListParts(ctx context.Context, filter *model.PartsFilter) ([]model.Part, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	parts := make([]model.Part, 0, len(r.data))
-	for _, repoPart := range r.data {
-		part := repoConverter.PartToModel(repoPart)
-		if !matchFilters(filter, part) {
-			continue
+	searchFilter := buildPartsFilter(filter)
+	cursor, err := r.collection.Find(ctx, searchFilter)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		cerr := cursor.Close(ctx)
+		if cerr != nil {
+			log.Printf("failed to close cursor: %v\n", cerr)
 		}
+	}()
+
+	var repoParts []repoModel.Part
+	err = cursor.All(ctx, &repoParts)
+	if err != nil {
+		return nil, err
+	}
+
+	parts := make([]model.Part, 0, len(repoParts))
+	for _, repoPart := range repoParts {
+		part := repoConverter.PartToModel(repoPart)
 		parts = append(parts, part)
 	}
 
 	return parts, nil
 }
 
-func matchFilters(filter *model.PartsFilter, part model.Part) bool {
-	if filter == nil {
-		return true
+func buildPartsFilter(f *model.PartsFilter) bson.M {
+	filter := bson.M{}
+	if f == nil {
+		return filter
 	}
 
-	return hasString(filter.Uuids, part.Uuid) &&
-		hasString(filter.Names, part.Name) &&
-		hasCategory(filter.Categories, part.Category) &&
-		hasString(filter.ManufacturerCountries, part.Manufacturer.Country) &&
-		hasAnyTags(filter.Tags, part.Tags)
-}
-
-func hasString(filter []string, value string) bool {
-	if len(filter) == 0 {
-		return true
+	if len(f.Uuids) > 0 {
+		filter["uuid"] = bson.M{"$in": f.Uuids}
 	}
-	return slices.Contains(filter, value)
-}
-
-func hasCategory(filterCategories []model.Category, category model.Category) bool {
-	if len(filterCategories) == 0 {
-		return true
+	if len(f.Names) > 0 {
+		filter["name"] = bson.M{"$in": f.Names}
 	}
-	return slices.Contains(filterCategories, category)
-}
-
-func hasAnyTags(filterTags, tags []string) bool {
-	if len(filterTags) == 0 {
-		return true
+	if len(f.Categories) > 0 {
+		filter["category"] = bson.M{"$in": f.Categories}
+	}
+	if len(f.ManufacturerCountries) > 0 {
+		filter["manufacturer.country"] = bson.M{"$in": f.ManufacturerCountries}
+	}
+	if len(f.Tags) > 0 {
+		filter["tags"] = bson.M{"$in": f.Tags}
 	}
 
-	tagSet := make(map[string]struct{}, len(tags))
-	for _, tag := range tags {
-		tagSet[tag] = struct{}{}
-	}
-
-	for _, filterTag := range filterTags {
-		if _, ok := tagSet[filterTag]; ok {
-			return true
-		}
-	}
-	return false
+	return filter
 }

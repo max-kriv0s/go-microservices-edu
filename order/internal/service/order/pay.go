@@ -40,6 +40,7 @@ func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod 
 
 	err = s.orderRepository.Update(ctx, order.OrderUUID, updateOrder)
 	if err != nil {
+		log.Printf("[service.PayOrder] internal error update order (uuid=%s): %v", orderUUID, err)
 		return "", model.ErrInternalServer
 	}
 
