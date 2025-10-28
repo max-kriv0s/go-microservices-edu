@@ -7,6 +7,7 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
+
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/converter"
 )

@@ -43,32 +43,7 @@ func (r *repository) Update(ctx context.Context, orderUUUiD string, updateOrder 
 
 	builderUpdate := sq.Update(ordersTable).PlaceholderFormat(sq.Dollar).Where(sq.Eq{orderUuidColumn: orderUUUiD})
 
-	hasUpdates := false
-	if updateOrder.UserUUID != nil {
-		builderUpdate = builderUpdate.Set(orderUserUUIDColumn, *updateOrder.UserUUID)
-		hasUpdates = true
-	}
-
-	if updateOrder.TotalPrice != nil {
-		builderUpdate = builderUpdate.Set(orderTotalPriceColumn, *updateOrder.TotalPrice)
-		hasUpdates = true
-	}
-
-	if updateOrder.TransactionUUID != nil {
-		builderUpdate = builderUpdate.Set(orderTransactionUUIDColumn, updateOrder.TransactionUUID)
-		hasUpdates = true
-	}
-
-	if updateOrder.PaymentMethod != nil {
-		builderUpdate = builderUpdate.Set(orderPaymentMethodColumn, repoConverter.PaymentMethodToRepoPaymentMethod(updateOrder.PaymentMethod))
-		hasUpdates = true
-	}
-
-	if updateOrder.Status != nil {
-		builderUpdate = builderUpdate.Set(orderStatusColumn, repoConverter.StatusToRepoStatus(*updateOrder.Status))
-		hasUpdates = true
-	}
-
+	builderUpdate, hasUpdates := buildOrderUpdate(builderUpdate, updateOrder)
 	if !hasUpdates {
 		return errors.New("no fields to update")
 	}
@@ -123,4 +98,35 @@ func (r *repository) Update(ctx context.Context, orderUUUiD string, updateOrder 
 	}
 
 	return nil
+}
+
+func buildOrderUpdate(builder sq.UpdateBuilder, updateOrder model.UpdateOrder) (sq.UpdateBuilder, bool) {
+	hasUpdates := false
+
+	if updateOrder.UserUUID != nil {
+		builder = builder.Set(orderUserUUIDColumn, *updateOrder.UserUUID)
+		hasUpdates = true
+	}
+
+	if updateOrder.TotalPrice != nil {
+		builder = builder.Set(orderTotalPriceColumn, *updateOrder.TotalPrice)
+		hasUpdates = true
+	}
+
+	if updateOrder.TransactionUUID != nil {
+		builder = builder.Set(orderTransactionUUIDColumn, updateOrder.TransactionUUID)
+		hasUpdates = true
+	}
+
+	if updateOrder.PaymentMethod != nil {
+		builder = builder.Set(orderPaymentMethodColumn, repoConverter.PaymentMethodToRepoPaymentMethod(updateOrder.PaymentMethod))
+		hasUpdates = true
+	}
+
+	if updateOrder.Status != nil {
+		builder = builder.Set(orderStatusColumn, repoConverter.StatusToRepoStatus(*updateOrder.Status))
+		hasUpdates = true
+	}
+
+	return builder, hasUpdates
 }
