@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+
 	"github.com/max-kriv0s/go-microservices-edu/payment/internal/config/env"
 )
 

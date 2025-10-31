@@ -5,12 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -18,13 +16,13 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
-	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
 	orderV1Api "github.com/max-kriv0s/go-microservices-edu/order/api/order/v1"
 	inventoryClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/payment/v1"
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/migrator"
 	orderRepository "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/order"
 	orderService "github.com/max-kriv0s/go-microservices-edu/order/internal/service/order"
@@ -33,31 +31,21 @@ import (
 	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 )
 
-const (
-	inventoryUrl      = "localhost:50051"
-	paymentUrl        = "localhost:50052"
-	serverTimeout     = 10 * time.Second
-	serverHost        = "localhost"
-	serverPort        = "8080"
-	readHeaderTimeout = 5 * time.Second
-	shutdownTimeout   = 10 * time.Second
-	grpcTimeout       = 5 * time.Second
-)
+const configPath = "./deploy/compose/order/.env"
 
 func main() {
 	ctx := context.Background()
 
-	err := godotenv.Load(".env")
+	err := config.Load(configPath)
 	if err != nil {
-		log.Printf("failed to load .env file: %v\n", err)
-		return
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
 
 	inventoryConn, err := grpc.NewClient(
-		inventoryUrl,
+		config.AppConfig().InventoryGRPC.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(
-			timeout.UnaryClientInterceptor(grpcTimeout),
+			timeout.UnaryClientInterceptor(config.AppConfig().OrderHTTP.GRPCTimeout()),
 		),
 	)
 	if err != nil {
@@ -71,10 +59,10 @@ func main() {
 	}()
 
 	paymentConn, err := grpc.NewClient(
-		paymentUrl,
+		config.AppConfig().PaymentGRPC.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(
-			timeout.UnaryClientInterceptor(grpcTimeout),
+			timeout.UnaryClientInterceptor(config.AppConfig().OrderHTTP.GRPCTimeout()),
 		),
 	)
 	if err != nil {
@@ -91,13 +79,7 @@ func main() {
 
 	paymentServiceClient := paymentClient.NewPaymentServiceClient(paymentV1.NewPaymentServiceClient(paymentConn))
 
-	dbName := os.Getenv("ORDER_DB_DATABASE")
-	dbUser := os.Getenv("ORDER_DB_USER")
-	dbPassword := os.Getenv("ORDER_DB_PASSWORD")
-	dbHost := os.Getenv("ORDER_DB_HOST")
-	dbPort := os.Getenv("ORDER_DB_PORT")
-
-	dbURI := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	dbURI := config.AppConfig().Postgres.URI()
 
 	// Создаем соединение с базой данных для миграции
 	con, err := pgx.Connect(ctx, dbURI)
@@ -120,7 +102,7 @@ func main() {
 	}
 
 	// Инициализируем мигратор
-	migrationsDir := os.Getenv("MIGRATIONS_DIR")
+	migrationsDir := config.AppConfig().Postgres.MigrationDirectory()
 	migratorRunner := migrator.NewMigrator(stdlib.OpenDB(*con.Config().Copy()), migrationsDir)
 
 	err = migratorRunner.Up()
@@ -159,15 +141,18 @@ func main() {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	serverTimeout := config.AppConfig().OrderHTTP.ServerTimeout()
 	r.Use(middleware.Timeout(serverTimeout))
 
 	r.Mount("/", orderServer)
 
-	serverAddr := net.JoinHostPort(serverHost, serverPort)
+	serverAddr := config.AppConfig().OrderHTTP.Address()
 	server := &http.Server{
 		Addr:              serverAddr,
 		Handler:           r,
-		ReadHeaderTimeout: readHeaderTimeout,
+		ReadHeaderTimeout: config.AppConfig().OrderHTTP.ReadHeaderTimeout(),
+		ReadTimeout:       config.AppConfig().OrderHTTP.ReadTimeout(),
 	}
 
 	go func() {
@@ -185,7 +170,7 @@ func main() {
 	log.Println("🛑 Завершение работы сервера...")
 
 	// Создаем контекст с таймаутом для остановки сервера
-	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), config.AppConfig().OrderHTTP.ShutdownTimeout())
 	defer cancel()
 
 	err = server.Shutdown(ctx)
