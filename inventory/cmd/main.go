@@ -9,33 +9,29 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	inventoryV1API "github.com/max-kriv0s/go-microservices-edu/inventory/internal/api/inventory/v1"
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/config"
 	inventoryRepository "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/inventory"
 	inventoryService "github.com/max-kriv0s/go-microservices-edu/inventory/internal/service/inventory"
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 )
 
-const (
-	grpcHost = "localhost"
-	grpcPort = 50051
-)
+const configPath = "./deploy/compose/inventory/.env"
 
 func main() {
 	ctx := context.Background()
 
-	err := godotenv.Load(".env")
+	err := config.Load(configPath)
 	if err != nil {
-		log.Printf("failed to load .env file: %v\n", err)
-		return
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
 
-	dbURI := os.Getenv("INVENTORY_MONGO_URI")
+	dbURI := config.AppConfig().Mongo.URI()
 
 	// Создаем клиент MongoDB
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbURI))
@@ -57,7 +53,8 @@ func main() {
 		return
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", grpcHost, grpcPort))
+	serverAddress := config.AppConfig().InventoryGRPC.Address()
+	lis, err := net.Listen("tcp", serverAddress)
 	if err != nil {
 		log.Printf("failed to listen: %v\n", err)
 		return
@@ -70,7 +67,7 @@ func main() {
 
 	server := grpc.NewServer()
 
-	dbName := os.Getenv("INVENTORY_DATABASE")
+	dbName := config.AppConfig().Mongo.DatabaseName()
 	db := client.Database(dbName)
 
 	repository := inventoryRepository.NewRepository(db)
@@ -84,7 +81,7 @@ func main() {
 	reflection.Register(server)
 
 	go func() {
-		log.Printf("🚀 gRPC server listening on %s:%d\n", grpcHost, grpcPort)
+		log.Printf("🚀 gRPC server listening on %s\n", serverAddress)
 		err := server.Serve(lis)
 		if err != nil {
 			log.Printf("failed to serve: %v\n", err)
