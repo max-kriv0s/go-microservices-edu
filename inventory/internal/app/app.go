@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/config"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/grpc/health"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/max-kriv0s/go-microservices-edu/payment/internal/config"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/grpc/health"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
+	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 )
 
 type App struct {
@@ -75,7 +75,7 @@ func (a *App) initCloser(ctx context.Context) error {
 }
 
 func (a *App) initListener(ctx context.Context) error {
-	listener, err := net.Listen("tcp", config.AppConfig().PaymentGRPC.Address())
+	listener, err := net.Listen("tcp", config.AppConfig().InventoryGRPC.Address())
 	if err != nil {
 		return err
 	}
@@ -105,13 +105,13 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 	// Регистрируем health service для проверки работоспособности
 	health.RegisterService(a.grpcServer)
 
-	paymentV1.RegisterPaymentServiceServer(a.grpcServer, a.diContainer.PaymentV1API(ctx))
+	inventoryV1.RegisterInventoryServiceServer(a.grpcServer, a.diContainer.InventoryV1API(ctx))
 
 	return nil
 }
 
 func (a *App) runGRPCServer(ctx context.Context) error {
-	logger.Info(ctx, fmt.Sprintf("🚀 gRPC PaymentService server listening on %s", config.AppConfig().PaymentGRPC.Address()))
+	logger.Info(ctx, fmt.Sprintf("🚀 gRPC PaymentService server listening on %s", config.AppConfig().InventoryGRPC.Address()))
 
 	err := a.grpcServer.Serve(a.listener)
 	if err != nil {

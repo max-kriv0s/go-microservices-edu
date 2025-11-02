@@ -14,6 +14,7 @@ require (
 	github.com/max-kriv0s/go-microservices-edu/platform v0.0.0-00010101000000-000000000000
 	github.com/max-kriv0s/go-microservices-edu/shared v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.11.1
+	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.76.0
 )
 
@@ -23,7 +24,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect

@@ -9,16 +9,16 @@ import (
 	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 )
 
-type diContaier struct {
+type diContainer struct {
 	paymentV1API   paymentV1.PaymentServiceServer
 	paymentService service.PaymentService
 }
 
-func NewDiContainer() *diContaier {
-	return &diContaier{}
+func NewDiContainer() *diContainer {
+	return &diContainer{}
 }
 
-func (d *diContaier) PaymentV1API(ctx context.Context) paymentV1.PaymentServiceServer {
+func (d *diContainer) PaymentV1API(ctx context.Context) paymentV1.PaymentServiceServer {
 	if d.paymentV1API == nil {
 		d.paymentV1API = paymentV1API.NewAPI(d.PaymentService(ctx))
 	}
@@ -26,7 +26,7 @@ func (d *diContaier) PaymentV1API(ctx context.Context) paymentV1.PaymentServiceS
 	return d.paymentV1API
 }
 
-func (d *diContaier) PaymentService(ctx context.Context) service.PaymentService {
+func (d *diContainer) PaymentService(ctx context.Context) service.PaymentService {
 	if d.paymentService == nil {
 		d.paymentService = paymentService.NewService()
 	}
