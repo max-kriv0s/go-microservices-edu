@@ -4,8 +4,11 @@ go 1.24.5
 
 replace github.com/max-kriv0s/go-microservices-edu/shared => ../shared
 
+replace github.com/max-kriv0s/go-microservices-edu/platform => ../platform
+
 require (
 	github.com/brianvoe/gofakeit/v7 v7.7.3
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/max-kriv0s/go-microservices-edu/shared v0.0.0-00010101000000-000000000000
 	github.com/samber/lo v1.52.0
