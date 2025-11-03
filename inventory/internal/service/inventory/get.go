@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
 func (s *service) GetPart(ctx context.Context, uuid string) (model.Part, error) {

@@ -3,9 +3,10 @@ package inventory
 import (
 	"context"
 
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
 func (s *service) ListParts(ctx context.Context, filter *model.PartsFilter) ([]model.Part, error) {

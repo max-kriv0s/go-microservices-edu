@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/config"
-	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository"
-	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/service"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
-	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	inventoryV1API "github.com/max-kriv0s/go-microservices-edu/inventory/internal/api/inventory/v1"
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/config"
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository"
 	inventoryRepository "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/inventory"
+	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/service"
 	inventoryService "github.com/max-kriv0s/go-microservices-edu/inventory/internal/service/inventory"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
+	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 )
 
 type diContainer struct {

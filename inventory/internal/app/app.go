@@ -5,15 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/grpc/health"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/reflection"
-
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 )
 
@@ -44,6 +48,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initLogger,
 		a.initCloser,
 		a.initListener,
+		a.initMongoIndexes,
+		a.seedDataInDB,
 		a.initGRPCServer,
 	}
 
@@ -89,6 +95,37 @@ func (a *App) initListener(ctx context.Context) error {
 	})
 
 	a.listener = listener
+
+	return nil
+}
+
+func (a *App) initMongoIndexes(ctx context.Context) error {
+	collection := a.diContainer.MongoDBHandle(ctx).Collection("parts")
+
+	// Создаем индексы при инициализации
+	indexModels := []mongo.IndexModel{
+		{
+			Keys:    bson.D{{Key: "uuid", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	_, err := collection.Indexes().CreateMany(ctx, indexModels)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create indexes in MongoDB: %s\n", err.Error()))
+	}
+
+	return nil
+}
+
+func (a *App) seedDataInDB(ctx context.Context) error {
+	err := a.diContainer.InventoryRepository(ctx).Seed(ctx, 10)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
