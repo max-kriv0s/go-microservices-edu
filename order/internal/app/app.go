@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/api/health"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
@@ -91,6 +92,8 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	serverTimeout := config.AppConfig().OrderHTTP.ServerTimeout()
 	r.Use(middleware.Timeout(serverTimeout))
+
+	r.Get("/health", health.Handler)
 
 	r.Mount("/", a.httpServer)
 

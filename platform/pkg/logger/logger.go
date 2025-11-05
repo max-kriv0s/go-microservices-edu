@@ -93,6 +93,10 @@ func InitForBenchmark() {
 	}
 }
 
+func InitForTest() {
+	globalLogger = &logger{zapLogger: zap.NewNop()}
+}
+
 // logger возвращает глобальный enrich-aware логгер
 func Logger() *logger {
 	return globalLogger
