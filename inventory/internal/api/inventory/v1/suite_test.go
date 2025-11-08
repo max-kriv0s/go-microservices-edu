@@ -9,6 +9,7 @@ import (
 
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/service/mocks"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 type APISuite struct {
@@ -24,6 +25,8 @@ func (s *APISuite) Ctx() context.Context {
 }
 
 func (s *APISuite) SetupTest() {
+	logger.InitForTest()
+
 	s.inventoryService = mocks.NewInventoryService(s.T())
 
 	s.api = NewAPI(

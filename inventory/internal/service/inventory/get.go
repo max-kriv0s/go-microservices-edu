@@ -3,9 +3,11 @@ package inventory
 import (
 	"context"
 	"errors"
-	"log"
+
+	"go.uber.org/zap"
 
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/model"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 func (s *service) GetPart(ctx context.Context, uuid string) (model.Part, error) {
@@ -15,7 +17,7 @@ func (s *service) GetPart(ctx context.Context, uuid string) (model.Part, error) 
 			return model.Part{}, model.ErrPartNotFound
 		}
 
-		log.Printf("[service.GetPart] internal error getting part (uuid=%s): %v", uuid, err)
+		logger.Error(ctx, "internal error getting part", zap.String("func", "GetPart"), zap.String("uuid", uuid), zap.Error(err))
 
 		return model.Part{}, model.ErrInternalServer
 	}

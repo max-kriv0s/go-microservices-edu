@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod model.PaymentMethod) (string, error) {
@@ -18,7 +19,7 @@ func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod 
 			return "", model.ErrOrderNotFound
 		}
 
-		log.Printf("[service.PayOrder] internal error pay order (uuid=%s): %v", orderUUID, err)
+		logger.Error(ctx, "order get error", zap.String("func", "PayOrder"), zap.String("uuid", orderUUID), zap.Error(err))
 
 		return "", model.ErrInternalServer
 	}
@@ -40,7 +41,8 @@ func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod 
 
 	err = s.orderRepository.Update(ctx, order.OrderUUID, updateOrder)
 	if err != nil {
-		log.Printf("[service.PayOrder] internal error update order (uuid=%s): %v", orderUUID, err)
+		logger.Error(ctx, "order update error", zap.String("func", "PayOrder"), zap.String("uuid", orderUUID), zap.Error(err))
+
 		return "", model.ErrInternalServer
 	}
 

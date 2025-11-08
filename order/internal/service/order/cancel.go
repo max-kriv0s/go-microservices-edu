@@ -6,8 +6,10 @@ import (
 	"fmt"
 
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 func (s *service) CancelOrder(ctx context.Context, orderUUID string) error {
@@ -16,6 +18,9 @@ func (s *service) CancelOrder(ctx context.Context, orderUUID string) error {
 		if errors.Is(err, model.ErrOrderNotFound) {
 			return model.ErrOrderNotFound
 		}
+
+		logger.Error(ctx, "order get error", zap.String("func", "CancelOrder"), zap.String("uuid", orderUUID), zap.Error(err))
+
 		return model.ErrInternalServer
 	}
 
@@ -29,6 +34,9 @@ func (s *service) CancelOrder(ctx context.Context, orderUUID string) error {
 
 	err = s.orderRepository.Update(ctx, order.OrderUUID, updateOrder)
 	if err != nil {
+
+		logger.Error(ctx, "order update error", zap.String("func", "CancelOrder"), zap.String("uuid", orderUUID), zap.Error(err))
+
 		return model.ErrInternalServer
 	}
 

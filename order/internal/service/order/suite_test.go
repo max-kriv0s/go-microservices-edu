@@ -8,6 +8,7 @@ import (
 
 	clientMocks "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/mocks"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/repository/mocks"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 type ServiceSuite struct {
@@ -25,6 +26,8 @@ func (s *ServiceSuite) Ctx() context.Context {
 }
 
 func (s *ServiceSuite) SetupTest() {
+	logger.InitForTest()
+
 	s.inventoryServiceClient = clientMocks.NewInventoryServiceClient(s.T())
 	s.paymentServiceClient = clientMocks.NewPaymentServiceClient(s.T())
 	s.orderRepository = mocks.NewOrderRepository(s.T())

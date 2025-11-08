@@ -187,6 +187,53 @@ func (_c *InventoryRepository_ListParts_Call) RunAndReturn(run func(context.Cont
 	return _c
 }
 
+// Seed provides a mock function with given fields: ctx, count
+func (_m *InventoryRepository) Seed(ctx context.Context, count int) error {
+	ret := _m.Called(ctx, count)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Seed")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) error); ok {
+		r0 = rf(ctx, count)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// InventoryRepository_Seed_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Seed'
+type InventoryRepository_Seed_Call struct {
+	*mock.Call
+}
+
+// Seed is a helper method to define mock.On call
+//   - ctx context.Context
+//   - count int
+func (_e *InventoryRepository_Expecter) Seed(ctx interface{}, count interface{}) *InventoryRepository_Seed_Call {
+	return &InventoryRepository_Seed_Call{Call: _e.mock.On("Seed", ctx, count)}
+}
+
+func (_c *InventoryRepository_Seed_Call) Run(run func(ctx context.Context, count int)) *InventoryRepository_Seed_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(int))
+	})
+	return _c
+}
+
+func (_c *InventoryRepository_Seed_Call) Return(_a0 error) *InventoryRepository_Seed_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *InventoryRepository_Seed_Call) RunAndReturn(run func(context.Context, int) error) *InventoryRepository_Seed_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewInventoryRepository creates a new instance of InventoryRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewInventoryRepository(t interface {

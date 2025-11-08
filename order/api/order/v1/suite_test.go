@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/service/mocks"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 type APISuite struct {
@@ -22,6 +23,8 @@ func (s *APISuite) Ctx() context.Context {
 }
 
 func (s *APISuite) SetupTest() {
+	logger.InitForTest()
+
 	s.orderService = mocks.NewOrderService(s.T())
 
 	s.api = NewAPI(

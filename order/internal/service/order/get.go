@@ -3,9 +3,11 @@ package order
 import (
 	"context"
 	"errors"
-	"log"
+
+	"go.uber.org/zap"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 func (s *service) GetOrder(ctx context.Context, orderUUID string) (model.Order, error) {
@@ -15,7 +17,7 @@ func (s *service) GetOrder(ctx context.Context, orderUUID string) (model.Order, 
 			return model.Order{}, model.ErrOrderNotFound
 		}
 
-		log.Printf("[service.GetOrder] internal error getting order (uuid=%s): %v", orderUUID, err)
+		logger.Error(ctx, "order get error", zap.String("func", "GetOrder"), zap.String("uuid", orderUUID), zap.Error(err))
 
 		return model.Order{}, model.ErrInternalServer
 	}

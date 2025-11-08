@@ -27,7 +27,7 @@ type Part struct {
 	// Теги для быстрого поиска
 	Tags []string `bson:"tags,omitempty"`
 	// Гибкие метаданные
-	Metadata map[string]any `bson:"metadate,omitempty"`
+	Metadata map[string]any `bson:"metadata,omitempty"`
 	// Дата создания
 	CreatedAt *time.Time `bson:"created_at,omitempty"`
 	// Дата обновления
