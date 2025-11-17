@@ -3,6 +3,7 @@ package order
 import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 )
@@ -33,6 +34,13 @@ func (s *ServiceSuite) TestPayOrderSuccess() {
 	}
 
 	s.orderRepository.On("Update", s.Ctx(), orderUUID, updateOrder).Return(nil)
+
+	s.orderProducerService.On("ProduceOrderPaid", s.Ctx(), mock.MatchedBy(func(e model.OrderPaidEvent) bool {
+		return e.OrderUUID == order.OrderUUID &&
+			e.UserUUID == order.UserUUID &&
+			e.PaymentMethod == string(paymentMethod) &&
+			e.TransactionUUID == transactionUUID
+	})).Return(nil)
 
 	res, err := s.service.PayOrder(s.Ctx(), orderUUID, paymentMethod)
 	s.Require().NoError(err)
