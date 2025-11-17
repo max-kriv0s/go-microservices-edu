@@ -79,6 +79,8 @@ func statusToApiStatus(status model.OrderStatus) orderV1.OrderStatus {
 		return orderV1.OrderStatusPAID
 	case model.OrderStatusCancelled:
 		return orderV1.OrderStatusCANCELLED
+	case model.OrderStatusAssembled:
+		return orderV1.OrderStatusASSEMBLED
 	default:
 		return orderV1.OrderStatusPENDINGPAYMENT
 	}

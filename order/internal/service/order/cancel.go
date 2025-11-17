@@ -2,7 +2,6 @@ package order
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/samber/lo"
@@ -13,15 +12,10 @@ import (
 )
 
 func (s *service) CancelOrder(ctx context.Context, orderUUID string) error {
-	order, err := s.orderRepository.Get(ctx, orderUUID)
+	order, err := s.GetOrder(ctx, orderUUID)
 	if err != nil {
-		if errors.Is(err, model.ErrOrderNotFound) {
-			return model.ErrOrderNotFound
-		}
-
 		logger.Error(ctx, "order get error", zap.String("func", "CancelOrder"), zap.String("uuid", orderUUID), zap.Error(err))
-
-		return model.ErrInternalServer
+		return err
 	}
 
 	if order.Status != model.OrderStatusPendingPayment {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/brianvoe/gofakeit/v7"
 
-	"github.com/max-kriv0s/go-microservices-edu/order/converter"
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/converter"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 )

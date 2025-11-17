@@ -24,6 +24,53 @@ func (_m *OrderService) EXPECT() *OrderService_Expecter {
 	return &OrderService_Expecter{mock: &_m.Mock}
 }
 
+// AssembledOrder provides a mock function with given fields: ctx, orderUUID
+func (_m *OrderService) AssembledOrder(ctx context.Context, orderUUID string) error {
+	ret := _m.Called(ctx, orderUUID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AssembledOrder")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, orderUUID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OrderService_AssembledOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AssembledOrder'
+type OrderService_AssembledOrder_Call struct {
+	*mock.Call
+}
+
+// AssembledOrder is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orderUUID string
+func (_e *OrderService_Expecter) AssembledOrder(ctx interface{}, orderUUID interface{}) *OrderService_AssembledOrder_Call {
+	return &OrderService_AssembledOrder_Call{Call: _e.mock.On("AssembledOrder", ctx, orderUUID)}
+}
+
+func (_c *OrderService_AssembledOrder_Call) Run(run func(ctx context.Context, orderUUID string)) *OrderService_AssembledOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *OrderService_AssembledOrder_Call) Return(_a0 error) *OrderService_AssembledOrder_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrderService_AssembledOrder_Call) RunAndReturn(run func(context.Context, string) error) *OrderService_AssembledOrder_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CancelOrder provides a mock function with given fields: ctx, orderUUID
 func (_m *OrderService) CancelOrder(ctx context.Context, orderUUID string) error {
 	ret := _m.Called(ctx, orderUUID)
