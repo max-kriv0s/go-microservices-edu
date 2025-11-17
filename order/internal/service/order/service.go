@@ -9,15 +9,17 @@ import (
 var _ def.OrderService = (*service)(nil)
 
 type service struct {
-	inventoryClient client.InventoryServiceClient
-	paymentClient   client.PaymentServiceClient
-	orderRepository repository.OrderRepository
+	inventoryClient      client.InventoryServiceClient
+	paymentClient        client.PaymentServiceClient
+	orderRepository      repository.OrderRepository
+	orderProducerService def.OrderProducerService
 }
 
-func NewService(inventoryServiceClient client.InventoryServiceClient, paymentServiceClient client.PaymentServiceClient, orderRepository repository.OrderRepository) *service {
+func NewService(inventoryServiceClient client.InventoryServiceClient, paymentServiceClient client.PaymentServiceClient, orderRepository repository.OrderRepository, orderProducerService def.OrderProducerService) *service {
 	return &service{
-		inventoryClient: inventoryServiceClient,
-		paymentClient:   paymentServiceClient,
-		orderRepository: orderRepository,
+		inventoryClient:      inventoryServiceClient,
+		paymentClient:        paymentServiceClient,
+		orderRepository:      orderRepository,
+		orderProducerService: orderProducerService,
 	}
 }

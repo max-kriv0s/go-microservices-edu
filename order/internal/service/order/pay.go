@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 
@@ -44,6 +45,17 @@ func (s *service) PayOrder(ctx context.Context, orderUUID string, paymentMethod 
 		logger.Error(ctx, "order update error", zap.String("func", "PayOrder"), zap.String("uuid", orderUUID), zap.Error(err))
 
 		return "", model.ErrInternalServer
+	}
+
+	err = s.orderProducerService.ProduceOrderPaid(ctx, model.OrderPaidEvent{
+		EventUUID:       uuid.NewString(),
+		OrderUUID:       order.OrderUUID,
+		UserUUID:        order.UserUUID,
+		PaymentMethod:   string(paymentMethod),
+		TransactionUUID: transactionUUID,
+	})
+	if err != nil {
+		return "", nil
 	}
 
 	return transactionUUID, nil

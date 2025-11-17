@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/IBM/sarama"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,7 +21,11 @@ import (
 	orderRepository "github.com/max-kriv0s/go-microservices-edu/order/internal/repository/order"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/service"
 	orderService "github.com/max-kriv0s/go-microservices-edu/order/internal/service/order"
+	orderProducer "github.com/max-kriv0s/go-microservices-edu/order/internal/service/producer/order_producer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
+	wrappedKafka "github.com/max-kriv0s/go-microservices-edu/platform/pkg/kafka"
+	wrappedKafkaProducer "github.com/max-kriv0s/go-microservices-edu/platform/pkg/kafka/producer"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator"
 	migratorPg "github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator/pg"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
@@ -35,7 +40,8 @@ type diContainer struct {
 
 	orderV1Api orderV1.Handler
 
-	orderService service.OrderService
+	orderService         service.OrderService
+	orderProducerService service.OrderProducerService
 
 	orderRepository repository.OrderRepository
 
@@ -43,6 +49,9 @@ type diContainer struct {
 	postgresDBPool *pgxpool.Pool
 
 	migrator migrator.Migrator
+
+	syncProducer      sarama.SyncProducer
+	orderPaidProducer wrappedKafka.Producer
 }
 
 func NewDiContainer() *diContainer {
@@ -112,7 +121,9 @@ func (d *diContainer) OrderService(ctx context.Context) service.OrderService {
 		d.orderService = orderService.NewService(
 			d.InventoryServiceClient(ctx),
 			d.PaymentServiceClient(ctx),
-			d.OrderRepository(ctx))
+			d.OrderRepository(ctx),
+			d.OrderProducerService(),
+		)
 	}
 
 	return d.orderService
@@ -192,4 +203,43 @@ func (d *diContainer) Migrator(ctx context.Context) migrator.Migrator {
 	d.migrator = migratorPg.NewMigrator(stdlib.OpenDB(*pgxConfig), migrationsDir)
 
 	return d.migrator
+}
+
+func (d *diContainer) OrderProducerService() service.OrderProducerService {
+	if d.orderProducerService == nil {
+		d.orderProducerService = orderProducer.NewService(d.OrderPaidProducer())
+	}
+
+	return d.orderProducerService
+}
+
+func (d *diContainer) SyncProducer() sarama.SyncProducer {
+	if d.syncProducer == nil {
+		p, err := sarama.NewSyncProducer(
+			config.AppConfig().Kafka.Brokers(),
+			config.AppConfig().OrderPaidProducer.Config(),
+		)
+		if err != nil {
+			panic(fmt.Sprintf("failed to create sync producer: %s\n", err.Error()))
+		}
+		closer.AddNamed("Kafka sync producer", func(ctx context.Context) error {
+			return p.Close()
+		})
+
+		d.syncProducer = p
+	}
+
+	return d.syncProducer
+}
+
+func (d *diContainer) OrderPaidProducer() wrappedKafka.Producer {
+	if d.orderPaidProducer == nil {
+		d.orderPaidProducer = wrappedKafkaProducer.NewProducer(
+			d.SyncProducer(),
+			config.AppConfig().OrderPaidProducer.Topic(),
+			logger.Logger(),
+		)
+	}
+
+	return d.orderPaidProducer
 }

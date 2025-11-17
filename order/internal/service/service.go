@@ -12,3 +12,7 @@ type OrderService interface {
 	GetOrder(ctx context.Context, orderUUID string) (model.Order, error)
 	CancelOrder(ctx context.Context, orderUUID string) error
 }
+
+type OrderProducerService interface {
+	ProduceOrderPaid(ctx context.Context, event model.OrderPaidEvent) error
+}
