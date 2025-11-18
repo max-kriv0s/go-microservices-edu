@@ -309,6 +309,11 @@ tasks:
     cmds:
       - go run assembly/cmd/main.go
 
+  run:notification:
+    desc: 'Запускает notification сервер'
+    cmds:
+      - go run notification/cmd/main.go
+
   mockery:install:
     desc: 'Устанавливает mockery в ./bin'
     cmds:
