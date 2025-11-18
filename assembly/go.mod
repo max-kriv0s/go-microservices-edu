@@ -9,12 +9,12 @@ replace github.com/max-kriv0s/go-microservices-edu/platform => ../platform
 require (
 	github.com/IBM/sarama v1.46.3
 	github.com/caarlos0/env/v11 v11.3.1
-	github.com/go-faster/errors v0.7.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/max-kriv0s/go-microservices-edu/platform v0.0.0-00010101000000-000000000000
 	github.com/max-kriv0s/go-microservices-edu/shared v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.27.0
+	golang.org/x/sync v0.18.0
 	google.golang.org/protobuf v1.36.10
 )
 

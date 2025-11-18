@@ -2,9 +2,9 @@ package app
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/go-faster/errors"
-	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/max-kriv0s/go-microservices-edu/assembly/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
@@ -27,34 +27,18 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	// Канал для ошибок от компонентов
-	errCh := make(chan error, 1)
+	g, gCtx := errgroup.WithContext(ctx)
+	// gCtx – контекст группы. Он автоматически отменяется, если одна из горутин в группе вернула ошибку.
 
-	// Контекст для остановки всех горутин
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	// Консьюмер
-	go func() {
-		if err := a.runConsumer(ctx); err != nil {
-			errCh <- errors.Errorf("consumer crashed: %v", err)
+	g.Go(func() error {
+		logger.Info(ctx, "Starting order consumer service")
+		if err := a.runConsumer(gCtx); err != nil {
+			return fmt.Errorf("order consumer service error: %w", err)
 		}
-	}()
+		return nil
+	})
 
-	// Ожидание либо ошибки, либо завершения контекста (например, сигнал SIGINT/SIGTERM)
-	select {
-	case <-ctx.Done():
-		logger.Info(ctx, "Shutdown signal received")
-	case err := <-errCh:
-		logger.Error(ctx, "Component crashed, shutting down", zap.Error(err))
-		// Триггерим cancel, чтобы остановить второй компонент
-		cancel()
-		// Дождись завершения всех задач (если есть graceful shutdown внутри)
-		<-ctx.Done()
-		return err
-	}
-
-	return nil
+	return g.Wait()
 }
 
 func (a *App) initDeps(ctx context.Context) error {
