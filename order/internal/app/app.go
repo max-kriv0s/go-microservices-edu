@@ -2,12 +2,13 @@ package app
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/api/health"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/config"
@@ -34,7 +35,41 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	return a.runHTTPServer(ctx)
+	// Канал для ошибок от компонентов
+	errCh := make(chan error, 2)
+
+	// Контекст для остановки всех горутин
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Консьюмер
+	go func() {
+		if err := a.runConsumer(ctx); err != nil {
+			errCh <- errors.Errorf("consumer crashed: %v", err)
+		}
+	}()
+
+	// HTTP сервер
+	go func() {
+		if err := a.runHTTPServer(ctx); err != nil {
+			errCh <- errors.Errorf("http server crashed: %v", err)
+		}
+	}()
+
+	// Ожидание либо ошибки, либо завершения контекста (например, сигнал SIGINT/SIGTERM)
+	select {
+	case <-ctx.Done():
+		logger.Info(ctx, "Shutdown signal received")
+	case err := <-errCh:
+		logger.Error(ctx, "Component crashed, shutting down", zap.Error(err))
+		// Триггерим cancel, чтобы остановить второй компонент
+		cancel()
+		// Дождись завершения всех задач (если есть graceful shutdown внутри)
+		<-ctx.Done()
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) initDeps(ctx context.Context) error {
@@ -122,6 +157,17 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		logger.Error(ctx, fmt.Sprintf("❌ Ошибка запуска сервера: %v\n", err.Error()))
 
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) runConsumer(ctx context.Context) error {
+	logger.Info(ctx, "🚀 OrderAssembled Kafka consumer running")
+
+	err := a.diContainer.OrderConsumerService(ctx).RunConsumer(ctx)
+	if err != nil {
 		return err
 	}
 

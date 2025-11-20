@@ -26,4 +26,5 @@ const (
 	OrderStatusPendingPayment OrderStatus = "PENDING_PAYMENT"
 	OrderStatusPaid           OrderStatus = "PAID"
 	OrderStatusCancelled      OrderStatus = "CANCELLED"
+	OrderStatusAssembled      OrderStatus = "ASSEMBLED"
 )

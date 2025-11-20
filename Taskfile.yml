@@ -304,6 +304,16 @@ tasks:
     cmds:
       - go run order/cmd/main.go
 
+  run:assembly:
+    desc: 'Запускает assembly сервер'
+    cmds:
+      - go run assembly/cmd/main.go
+
+  run:notification:
+    desc: 'Запускает notification сервер'
+    cmds:
+      - go run notification/cmd/main.go
+
   mockery:install:
     desc: 'Устанавливает mockery в ./bin'
     cmds:
@@ -605,6 +615,8 @@ tasks:
 
         echo
         echo "📊 Тест 7: Проверка статуса после оплаты (должен быть PAID)"
+        # Ждем небольшую паузу для обновления статуса
+        sleep 1
         ORDER_INFO_RESPONSE=$(curl -s -X GET "http://localhost:8080/api/v1/orders/$ORDER_UUID")
 
         # Извлекаем статус заказа
@@ -614,11 +626,31 @@ tasks:
         fi
 
         # Проверяем, что статус стал PAID
-        if [[ "$ORDER_STATUS" != *"PAID"* && "$ORDER_STATUS" != *"ASSEMBLED"* ]]; then
+        if [[ "$ORDER_STATUS" != *"PAID"* ]]; then
           echo "❌ Неверный статус заказа после оплаты. Ожидался PAID или ASSEMBLED, получен: $ORDER_STATUS"
           exit 1
         fi
         echo "✅ Статус заказа после оплаты: $ORDER_STATUS"
+
+        # Если статус PAID, ждем сборку
+        if [[ "$ORDER_STATUS" == *"PAID"* ]]; then
+          echo "Ожидаем сборку заказа (11 секунд)..."
+          sleep 11
+
+          ORDER_INFO_RESPONSE=$(curl -s -X GET "http://localhost:8080/api/v1/orders/$ORDER_UUID")
+          ORDER_STATUS=$(echo $ORDER_INFO_RESPONSE | grep -o '"status":"[^"]*' | cut -d'"' -f4)
+          if [ -z "$ORDER_STATUS" ]; then
+            ORDER_STATUS=$(echo $ORDER_INFO_RESPONSE | grep -o '"status": "[^"]*' | cut -d'"' -f4)
+          fi
+
+          # Проверяем, что статус изменился на ASSEMBLED
+          if [[ "$ORDER_STATUS" != *"ASSEMBLED"* ]]; then
+            echo "❌ Статус заказа не изменился на ASSEMBLED после ожидания. Текущий статус: $ORDER_STATUS"
+            exit 1
+          fi
+
+          echo "✅ Статус заказа после ожидания сборки: $ORDER_STATUS (ожидали ASSEMBLED)"
+        fi
 
         echo
         echo "📝 Тест 8: Создание второго заказа для отмены (REST API)"
