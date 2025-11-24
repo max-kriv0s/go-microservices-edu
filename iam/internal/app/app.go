@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/max-kriv0s/go-microservices-edu/iam/internal/config"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/grpc/health"
-	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/max-kriv0s/go-microservices-edu/iam/internal/config"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/grpc/health"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 	userV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/user/v1"
 )

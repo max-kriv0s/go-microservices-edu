@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/converter"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
 func (r *repository) Create(ctx context.Context, uuid string, sessionInfo model.SessionInfo, ttl time.Duration) error {

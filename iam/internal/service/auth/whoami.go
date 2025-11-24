@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
 func (s *service) Whoami(ctx context.Context, sessionUUID string) (model.SessionInfo, error) {

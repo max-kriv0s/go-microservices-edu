@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/alexedwards/argon2id"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/repository"
 	def "github.com/max-kriv0s/go-microservices-edu/iam/internal/service"
 )

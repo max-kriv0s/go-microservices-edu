@@ -6,8 +6,8 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
-	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 
+	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/converter"
 	repoModel "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/model"
 )
@@ -24,7 +24,7 @@ func (r *repository) GetUserById(ctx context.Context, userUUID string) (model.Us
 	return r.getByColumn(ctx, uUuidColumn, userUUID)
 }
 
-func (r *repository) getByColumn(ctx context.Context, column string, value string) (model.User, error) {
+func (r *repository) getByColumn(ctx context.Context, column, value string) (model.User, error) {
 	whereColumn := col(usersTable, column)
 
 	builderSelect := sq.Select(
@@ -55,7 +55,6 @@ func (r *repository) getByColumn(ctx context.Context, column string, value strin
 		&repoUser.CreatedAt,
 		&repoUser.UpdatedAt,
 	)
-
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return model.User{}, model.ErrUserNotFound

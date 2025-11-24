@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sq "github.com/Masterminds/squirrel"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/converter"
 )

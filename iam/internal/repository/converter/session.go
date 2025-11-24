@@ -1,11 +1,15 @@
 package converter
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	repoModel "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/model"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
 
 func SessionInfoToRedisView(sessionInfo model.SessionInfo) repoModel.SessionRedisView {
@@ -36,11 +40,13 @@ func SessionInfoToRedisView(sessionInfo model.SessionInfo) repoModel.SessionRedi
 	}
 }
 
-func RedisViewToSessionInfo(redisView repoModel.SessionRedisView) model.SessionInfo {
+func RedisViewToSessionInfo(ctx context.Context, redisView repoModel.SessionRedisView) model.SessionInfo {
 	notificationMethod := make(map[model.ProviderName]model.Target, 0)
 	if redisView.NotificationMethod != "" {
-		_ = json.Unmarshal([]byte(redisView.NotificationMethod), &notificationMethod)
-
+		err := json.Unmarshal([]byte(redisView.NotificationMethod), &notificationMethod)
+		if err != nil {
+			logger.Warn(ctx, "error unmarshal NotificationMethod", zap.String("func", "RedisViewToSessionInfo"), zap.String("user_uuid", redisView.UserUUID), zap.Error(err))
+		}
 	}
 
 	return model.SessionInfo{

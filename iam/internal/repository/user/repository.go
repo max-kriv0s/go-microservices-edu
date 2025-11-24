@@ -2,6 +2,7 @@ package user
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	def "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository"
 )
 

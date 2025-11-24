@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/converter"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	userV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/user/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (a *api) GetUser(ctx context.Context, req *userV1.GetUserRequest) (*userV1.GetUserResponse, error) {
@@ -25,5 +26,4 @@ func (a *api) GetUser(ctx context.Context, req *userV1.GetUserRequest) (*userV1.
 	}
 
 	return &userV1.GetUserResponse{User: converter.UserToProto(user)}, nil
-
 }

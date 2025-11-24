@@ -7,11 +7,12 @@ import (
 	"syscall"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/app"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
 const configPath = "./deploy/compose/iam/.env"

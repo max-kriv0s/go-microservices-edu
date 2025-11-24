@@ -2,8 +2,10 @@ package model
 
 import "time"
 
-type ProviderName string
-type Target string
+type (
+	ProviderName string
+	Target       string
+)
 
 type UserInfo struct {
 	Login              string

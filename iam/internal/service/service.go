@@ -7,7 +7,7 @@ import (
 )
 
 type AuthService interface {
-	Login(ctx context.Context, login string, password string) (string, error)
+	Login(ctx context.Context, login, password string) (string, error)
 	Whoami(ctx context.Context, sessionUUID string) (model.SessionInfo, error)
 }
 

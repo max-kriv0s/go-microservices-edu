@@ -8,7 +8,7 @@ import (
 )
 
 func UserInfoToRepoModel(userInfo model.UserInfo, passwordHash string) (repoModel.User, error) {
-	var notificationMethod = make(map[repoModel.ProviderName]repoModel.Target, len(userInfo.NotificationMethod))
+	notificationMethod := make(map[repoModel.ProviderName]repoModel.Target, len(userInfo.NotificationMethod))
 
 	for providerName, target := range userInfo.NotificationMethod {
 		notificationMethod[repoModel.ProviderName(providerName)] = repoModel.Target(target)
@@ -28,7 +28,7 @@ func UserInfoToRepoModel(userInfo model.UserInfo, passwordHash string) (repoMode
 }
 
 func UserToModel(repoUser repoModel.User) (model.User, error) {
-	var notificationMethod = make(map[model.ProviderName]model.Target)
+	notificationMethod := make(map[model.ProviderName]model.Target)
 	if len(repoUser.NotificationMethod) > 0 {
 		var tmp map[string]string
 

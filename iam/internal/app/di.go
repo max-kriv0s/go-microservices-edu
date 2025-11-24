@@ -4,14 +4,20 @@ import (
 	"context"
 	"fmt"
 
+	redigo "github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
+
+	authV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/auth/v1"
+	userV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/user/v1"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/repository"
 	sessionRepository "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/session"
 	userRepository "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/user"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/service"
+	authService "github.com/max-kriv0s/go-microservices-edu/iam/internal/service/auth"
+	userService "github.com/max-kriv0s/go-microservices-edu/iam/internal/service/user"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/cache"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/cache/redis"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
@@ -20,14 +26,6 @@ import (
 	migratorPg "github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator/pg"
 	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 	userV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/user/v1"
-
-	authV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/auth/v1"
-	userV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/user/v1"
-
-	authService "github.com/max-kriv0s/go-microservices-edu/iam/internal/service/auth"
-	userService "github.com/max-kriv0s/go-microservices-edu/iam/internal/service/user"
-
-	redigo "github.com/gomodule/redigo/redis"
 )
 
 type diContainer struct {

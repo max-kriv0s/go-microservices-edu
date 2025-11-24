@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	redigo "github.com/gomodule/redigo/redis"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	repoConverter "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/converter"
 	repoModel "github.com/max-kriv0s/go-microservices-edu/iam/internal/repository/model"
@@ -31,5 +32,5 @@ func (r *repository) Get(ctx context.Context, uuid string) (model.SessionInfo, e
 		return model.SessionInfo{}, err
 	}
 
-	return repoConverter.RedisViewToSessionInfo(sessionRedisView), nil
+	return repoConverter.RedisViewToSessionInfo(ctx, sessionRedisView), nil
 }

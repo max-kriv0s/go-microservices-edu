@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
-func (s *service) Login(ctx context.Context, login string, password string) (string, error) {
+func (s *service) Login(ctx context.Context, login, password string) (string, error) {
 	user, err := s.userService.GetUserByLogin(ctx, login)
 	if err != nil {
 		if errors.Is(err, model.ErrUserNotFound) {

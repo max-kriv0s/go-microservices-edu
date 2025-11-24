@@ -1,10 +1,11 @@
 package converter
 
 import (
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/model"
 	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 	commonV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/common/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func SessionInfoToWhoamiResponse(sessionInfo model.SessionInfo) *authV1.WhoamiResponse {
