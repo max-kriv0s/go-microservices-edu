@@ -32,3 +32,4 @@ node_modules
 .postgres_order_data
 .mongo_inventory_data
 .kafka_data
+.postgres_iam_data

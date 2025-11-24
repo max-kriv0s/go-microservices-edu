@@ -2,10 +2,14 @@ module github.com/max-kriv0s/go-microservices-edu/platform
 
 go 1.24.5
 
+replace github.com/max-kriv0s/go-microservices-edu/shared => ../shared
+
 require (
 	github.com/IBM/sarama v1.46.3
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.6.0
+	github.com/gomodule/redigo v1.9.3
+	github.com/max-kriv0s/go-microservices-edu/shared v0.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/testcontainers/testcontainers-go v0.40.0
