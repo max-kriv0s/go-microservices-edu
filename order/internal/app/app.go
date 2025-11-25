@@ -134,6 +134,7 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	serverTimeout := config.AppConfig().OrderHTTP.ServerTimeout()
 	r.Use(middleware.Timeout(serverTimeout))
+	r.Use(a.diContainer.AuthInterceptor().Handle)
 
 	r.Get("/health", health.Handler)
 

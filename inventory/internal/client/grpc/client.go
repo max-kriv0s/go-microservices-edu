@@ -3,8 +3,9 @@ package client
 import (
 	"context"
 
-	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 	"google.golang.org/grpc"
+
+	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 )
 
 type IamServiceClient interface {

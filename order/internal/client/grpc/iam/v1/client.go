@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	def "github.com/max-kriv0s/go-microservices-edu/inventory/internal/client/grpc"
+	def "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc"
 	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 )
 

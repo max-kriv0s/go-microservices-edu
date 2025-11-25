@@ -4,26 +4,25 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	inventoryV1API "github.com/max-kriv0s/go-microservices-edu/inventory/internal/api/inventory/v1"
 	client "github.com/max-kriv0s/go-microservices-edu/inventory/internal/client/grpc"
+	iamClient "github.com/max-kriv0s/go-microservices-edu/inventory/internal/client/grpc/iam/v1"
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository"
 	inventoryRepository "github.com/max-kriv0s/go-microservices-edu/inventory/internal/repository/inventory"
 	"github.com/max-kriv0s/go-microservices-edu/inventory/internal/service"
 	inventoryService "github.com/max-kriv0s/go-microservices-edu/inventory/internal/service/inventory"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
-	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
-
-	iamClient "github.com/max-kriv0s/go-microservices-edu/inventory/internal/client/grpc/iam/v1"
-	grpcMiddlevare "github.com/max-kriv0s/go-microservices-edu/platform/pkg/middleware/grpc"
+	grpcAuth "github.com/max-kriv0s/go-microservices-edu/platform/pkg/middleware/grpc"
 	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
+	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 )
 
 type diContainer struct {
@@ -35,7 +34,7 @@ type diContainer struct {
 	mongoDBHandle *mongo.Database
 
 	iamServiceClient client.IamServiceClient
-	authInterceptor  *grpcMiddlevare.AuthInterceptor
+	authInterceptor  *grpcAuth.AuthInterceptor
 }
 
 func NewDiContainer() *diContainer {
@@ -121,9 +120,9 @@ func (d *diContainer) IamServiceClient() client.IamServiceClient {
 	return d.iamServiceClient
 }
 
-func (d *diContainer) AuthInterceptor() *grpcMiddlevare.AuthInterceptor {
+func (d *diContainer) AuthInterceptor() *grpcAuth.AuthInterceptor {
 	if d.authInterceptor == nil {
-		d.authInterceptor = grpcMiddlevare.NewAuthInterceptor(d.IamServiceClient())
+		d.authInterceptor = grpcAuth.NewAuthInterceptor(d.IamServiceClient())
 	}
 
 	return d.authInterceptor

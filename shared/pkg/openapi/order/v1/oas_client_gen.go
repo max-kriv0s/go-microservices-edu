@@ -46,7 +46,7 @@ type Invoker interface {
 	// пользователем деталей.
 	//
 	// POST /api/v1/orders
-	CreateOrder(ctx context.Context, request *CreateOrderRequestDto) (CreateOrderRes, error)
+	CreateOrder(ctx context.Context, request *CreateOrderRequestDto, params CreateOrderParams) (CreateOrderRes, error)
 	// PayOrder invokes PayOrder operation.
 	//
 	// Оплата заказа.
@@ -176,6 +176,20 @@ func (c *Client) sendAPIV1OrdersOrderUUIDCancelPost(ctx context.Context, params 
 		return res, errors.Wrap(err, "create request")
 	}
 
+	stage = "EncodeHeaderParams"
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -265,6 +279,20 @@ func (c *Client) sendAPIV1OrdersOrderUUIDGet(ctx context.Context, params APIV1Or
 		return res, errors.Wrap(err, "create request")
 	}
 
+	stage = "EncodeHeaderParams"
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
+	}
+
 	stage = "SendRequest"
 	resp, err := c.cfg.Client.Do(r)
 	if err != nil {
@@ -287,12 +315,12 @@ func (c *Client) sendAPIV1OrdersOrderUUIDGet(ctx context.Context, params APIV1Or
 // пользователем деталей.
 //
 // POST /api/v1/orders
-func (c *Client) CreateOrder(ctx context.Context, request *CreateOrderRequestDto) (CreateOrderRes, error) {
-	res, err := c.sendCreateOrder(ctx, request)
+func (c *Client) CreateOrder(ctx context.Context, request *CreateOrderRequestDto, params CreateOrderParams) (CreateOrderRes, error) {
+	res, err := c.sendCreateOrder(ctx, request, params)
 	return res, err
 }
 
-func (c *Client) sendCreateOrder(ctx context.Context, request *CreateOrderRequestDto) (res CreateOrderRes, err error) {
+func (c *Client) sendCreateOrder(ctx context.Context, request *CreateOrderRequestDto, params CreateOrderParams) (res CreateOrderRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("CreateOrder"),
 		semconv.HTTPRequestMethodKey.String("POST"),
@@ -339,6 +367,20 @@ func (c *Client) sendCreateOrder(ctx context.Context, request *CreateOrderReques
 	}
 	if err := encodeCreateOrderRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "EncodeHeaderParams"
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
 	}
 
 	stage = "SendRequest"
@@ -433,6 +475,20 @@ func (c *Client) sendPayOrder(ctx context.Context, request *PayOrderRequestDto, 
 	}
 	if err := encodePayOrderRequest(request, r); err != nil {
 		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "EncodeHeaderParams"
+	h := uri.NewHeaderEncoder(r.Header)
+	{
+		cfg := uri.HeaderParameterEncodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
+			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+		}); err != nil {
+			return res, errors.Wrap(err, "encode header")
+		}
 	}
 
 	stage = "SendRequest"

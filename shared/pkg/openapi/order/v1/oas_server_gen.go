@@ -26,7 +26,7 @@ type Handler interface {
 	// пользователем деталей.
 	//
 	// POST /api/v1/orders
-	CreateOrder(ctx context.Context, req *CreateOrderRequestDto) (CreateOrderRes, error)
+	CreateOrder(ctx context.Context, req *CreateOrderRequestDto, params CreateOrderParams) (CreateOrderRes, error)
 	// PayOrder implements PayOrder operation.
 	//
 	// Оплата заказа.
