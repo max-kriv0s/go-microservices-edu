@@ -20,6 +20,8 @@ import (
 type APIV1OrdersOrderUUIDCancelPostParams struct {
 	// Идентификатор заказа.
 	OrderUUID uuid.UUID
+	// UUID сессии пользователя для аутентификации.
+	XSessionUUID uuid.UUID
 }
 
 func unpackAPIV1OrdersOrderUUIDCancelPostParams(packed middleware.Parameters) (params APIV1OrdersOrderUUIDCancelPostParams) {
@@ -30,10 +32,18 @@ func unpackAPIV1OrdersOrderUUIDCancelPostParams(packed middleware.Parameters) (p
 		}
 		params.OrderUUID = packed[key].(uuid.UUID)
 	}
+	{
+		key := middleware.ParameterKey{
+			Name: "X-Session-Uuid",
+			In:   "header",
+		}
+		params.XSessionUUID = packed[key].(uuid.UUID)
+	}
 	return params
 }
 
 func decodeAPIV1OrdersOrderUUIDCancelPostParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1OrdersOrderUUIDCancelPostParams, _ error) {
+	h := uri.NewHeaderDecoder(r.Header)
 	// Decode path: order_uuid.
 	if err := func() error {
 		param := args[0]
@@ -76,6 +86,40 @@ func decodeAPIV1OrdersOrderUUIDCancelPostParams(args [1]string, argsEscaped bool
 		return params, &ogenerrors.DecodeParamError{
 			Name: "order_uuid",
 			In:   "path",
+			Err:  err,
+		}
+	}
+	// Decode header: X-Session-Uuid.
+	if err := func() error {
+		cfg := uri.HeaderParameterDecodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.HasParam(cfg); err == nil {
+			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToUUID(val)
+				if err != nil {
+					return err
+				}
+
+				params.XSessionUUID = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "X-Session-Uuid",
+			In:   "header",
 			Err:  err,
 		}
 	}
@@ -86,6 +130,8 @@ func decodeAPIV1OrdersOrderUUIDCancelPostParams(args [1]string, argsEscaped bool
 type APIV1OrdersOrderUUIDGetParams struct {
 	// Идентификатор заказа.
 	OrderUUID uuid.UUID
+	// UUID сессии пользователя для аутентификации.
+	XSessionUUID uuid.UUID
 }
 
 func unpackAPIV1OrdersOrderUUIDGetParams(packed middleware.Parameters) (params APIV1OrdersOrderUUIDGetParams) {
@@ -96,10 +142,18 @@ func unpackAPIV1OrdersOrderUUIDGetParams(packed middleware.Parameters) (params A
 		}
 		params.OrderUUID = packed[key].(uuid.UUID)
 	}
+	{
+		key := middleware.ParameterKey{
+			Name: "X-Session-Uuid",
+			In:   "header",
+		}
+		params.XSessionUUID = packed[key].(uuid.UUID)
+	}
 	return params
 }
 
 func decodeAPIV1OrdersOrderUUIDGetParams(args [1]string, argsEscaped bool, r *http.Request) (params APIV1OrdersOrderUUIDGetParams, _ error) {
+	h := uri.NewHeaderDecoder(r.Header)
 	// Decode path: order_uuid.
 	if err := func() error {
 		param := args[0]
@@ -145,6 +199,96 @@ func decodeAPIV1OrdersOrderUUIDGetParams(args [1]string, argsEscaped bool, r *ht
 			Err:  err,
 		}
 	}
+	// Decode header: X-Session-Uuid.
+	if err := func() error {
+		cfg := uri.HeaderParameterDecodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.HasParam(cfg); err == nil {
+			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToUUID(val)
+				if err != nil {
+					return err
+				}
+
+				params.XSessionUUID = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "X-Session-Uuid",
+			In:   "header",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// CreateOrderParams is parameters of CreateOrder operation.
+type CreateOrderParams struct {
+	// UUID сессии пользователя для аутентификации.
+	XSessionUUID uuid.UUID
+}
+
+func unpackCreateOrderParams(packed middleware.Parameters) (params CreateOrderParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "X-Session-Uuid",
+			In:   "header",
+		}
+		params.XSessionUUID = packed[key].(uuid.UUID)
+	}
+	return params
+}
+
+func decodeCreateOrderParams(args [0]string, argsEscaped bool, r *http.Request) (params CreateOrderParams, _ error) {
+	h := uri.NewHeaderDecoder(r.Header)
+	// Decode header: X-Session-Uuid.
+	if err := func() error {
+		cfg := uri.HeaderParameterDecodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.HasParam(cfg); err == nil {
+			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToUUID(val)
+				if err != nil {
+					return err
+				}
+
+				params.XSessionUUID = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "X-Session-Uuid",
+			In:   "header",
+			Err:  err,
+		}
+	}
 	return params, nil
 }
 
@@ -152,6 +296,8 @@ func decodeAPIV1OrdersOrderUUIDGetParams(args [1]string, argsEscaped bool, r *ht
 type PayOrderParams struct {
 	// Идентификатор заказа.
 	OrderUUID uuid.UUID
+	// UUID сессии пользователя для аутентификации.
+	XSessionUUID uuid.UUID
 }
 
 func unpackPayOrderParams(packed middleware.Parameters) (params PayOrderParams) {
@@ -162,10 +308,18 @@ func unpackPayOrderParams(packed middleware.Parameters) (params PayOrderParams) 
 		}
 		params.OrderUUID = packed[key].(uuid.UUID)
 	}
+	{
+		key := middleware.ParameterKey{
+			Name: "X-Session-Uuid",
+			In:   "header",
+		}
+		params.XSessionUUID = packed[key].(uuid.UUID)
+	}
 	return params
 }
 
 func decodePayOrderParams(args [1]string, argsEscaped bool, r *http.Request) (params PayOrderParams, _ error) {
+	h := uri.NewHeaderDecoder(r.Header)
 	// Decode path: order_uuid.
 	if err := func() error {
 		param := args[0]
@@ -208,6 +362,40 @@ func decodePayOrderParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		return params, &ogenerrors.DecodeParamError{
 			Name: "order_uuid",
 			In:   "path",
+			Err:  err,
+		}
+	}
+	// Decode header: X-Session-Uuid.
+	if err := func() error {
+		cfg := uri.HeaderParameterDecodingConfig{
+			Name:    "X-Session-Uuid",
+			Explode: false,
+		}
+		if err := h.HasParam(cfg); err == nil {
+			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToUUID(val)
+				if err != nil {
+					return err
+				}
+
+				params.XSessionUUID = c
+				return nil
+			}); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "X-Session-Uuid",
+			In:   "header",
 			Err:  err,
 		}
 	}

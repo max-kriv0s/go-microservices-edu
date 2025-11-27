@@ -10,7 +10,7 @@ import (
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 )
 
-func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequestDto) (orderV1.CreateOrderRes, error) {
+func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequestDto, params orderV1.CreateOrderParams) (orderV1.CreateOrderRes, error) {
 	order, err := a.orderService.CreateOrder(ctx, converter.CreateOrderRequestToModel(req))
 	if err != nil {
 		if errors.Is(err, model.ErrBadRequest) {

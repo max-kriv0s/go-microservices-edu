@@ -14,6 +14,7 @@ import (
 
 	orderV1Api "github.com/max-kriv0s/go-microservices-edu/order/api/order/v1"
 	client "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc"
+	iamClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/iam/v1"
 	inventoryClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/payment/v1"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/config"
@@ -30,18 +31,20 @@ import (
 	wrappedKafkaConsumer "github.com/max-kriv0s/go-microservices-edu/platform/pkg/kafka/consumer"
 	wrappedKafkaProducer "github.com/max-kriv0s/go-microservices-edu/platform/pkg/kafka/producer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
+	httpAuth "github.com/max-kriv0s/go-microservices-edu/platform/pkg/middleware/http"
 	kafkaMiddleware "github.com/max-kriv0s/go-microservices-edu/platform/pkg/middleware/kafka"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator"
 	migratorPg "github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator/pg"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
+	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 	paymentV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/payment/v1"
 )
 
 type diContainer struct {
 	inventoryServiceClient client.InventoryServiceClient
-
-	paymentServiceClient client.PaymentServiceClient
+	iamServiceClient       client.IamServiceClient
+	paymentServiceClient   client.PaymentServiceClient
 
 	orderV1Api orderV1.Handler
 
@@ -62,6 +65,8 @@ type diContainer struct {
 	orderAssembledConsumer wrappedKafka.Consumer
 	consumerGroup          sarama.ConsumerGroup
 	orderAssembledDecoder  kafkaConverter.OrderAssembledDecoder
+
+	authMiddleware *httpAuth.AuthMiddleware
 }
 
 func NewDiContainer() *diContainer {
@@ -303,4 +308,37 @@ func (d *diContainer) OrderAssembledDecoder() kafkaConverter.OrderAssembledDecod
 	}
 
 	return d.orderAssembledDecoder
+}
+
+func (d *diContainer) IamServiceClient() client.IamServiceClient {
+	if d.iamServiceClient != nil {
+		return d.iamServiceClient
+	}
+
+	iamConn, err := grpc.NewClient(
+		config.AppConfig().IamGRPC.Address(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(
+			timeout.UnaryClientInterceptor(config.AppConfig().OrderHTTP.GRPCTimeout()),
+		),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to connect to iam service: %s\n", err.Error()))
+	}
+
+	closer.AddNamed("Inventory service client", func(ctx context.Context) error {
+		return iamConn.Close()
+	})
+
+	d.iamServiceClient = iamClient.NewIamServiceClient(authV1.NewAuthServiceClient(iamConn))
+
+	return d.iamServiceClient
+}
+
+func (d *diContainer) AuthInterceptor() *httpAuth.AuthMiddleware {
+	if d.authMiddleware == nil {
+		d.authMiddleware = httpAuth.NewAuthMiddleware(d.IamServiceClient())
+	}
+
+	return d.authMiddleware
 }

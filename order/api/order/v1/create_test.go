@@ -20,6 +20,8 @@ func (s *APISuite) TestCreateOrderSuccess() {
 			PartUuids: partsUUIDs,
 		}
 
+		params = orderV1.CreateOrderParams{}
+
 		expectedModel = converter.CreateOrderRequestToModel(req)
 		expectedOrder = model.Order{
 			OrderUUID:  gofakeit.UUID(),
@@ -34,7 +36,7 @@ func (s *APISuite) TestCreateOrderSuccess() {
 
 	s.orderService.On("CreateOrder", s.Ctx(), expectedModel).Return(expectedOrder, nil)
 
-	res, err := s.api.CreateOrder(s.Ctx(), req)
+	res, err := s.api.CreateOrder(s.Ctx(), req, params)
 	s.Require().NoError(err)
 	s.Require().NotNil(res)
 	s.Require().Equal(expectedResponseDto, res)
@@ -51,13 +53,15 @@ func (s *APISuite) TestCreateOrderBadRequestError() {
 			PartUuids: partsUUIDs,
 		}
 
+		params = orderV1.CreateOrderParams{}
+
 		expectedModel = converter.CreateOrderRequestToModel(req)
 		expectedCode  = http.StatusBadRequest
 	)
 
 	s.orderService.On("CreateOrder", s.Ctx(), expectedModel).Return(model.Order{}, serviceErr)
 
-	res, err := s.api.CreateOrder(s.Ctx(), req)
+	res, err := s.api.CreateOrder(s.Ctx(), req, params)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(res)
 
@@ -78,13 +82,15 @@ func (s *APISuite) TestCreateOrderInternalError() {
 			PartUuids: partsUUIDs,
 		}
 
+		params = orderV1.CreateOrderParams{}
+
 		expectedModel = converter.CreateOrderRequestToModel(req)
 		expectedCode  = http.StatusInternalServerError
 	)
 
 	s.orderService.On("CreateOrder", s.Ctx(), expectedModel).Return(model.Order{}, serviceErr)
 
-	res, err := s.api.CreateOrder(s.Ctx(), req)
+	res, err := s.api.CreateOrder(s.Ctx(), req, params)
 	s.Require().NoError(err)
 	s.Require().NotEmpty(res)
 

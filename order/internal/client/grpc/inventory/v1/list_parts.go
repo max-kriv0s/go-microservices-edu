@@ -6,10 +6,14 @@ import (
 
 	clientConverter "github.com/max-kriv0s/go-microservices-edu/order/internal/client/converter"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
+	grpcAuth "github.com/max-kriv0s/go-microservices-edu/platform/pkg/middleware/grpc"
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
 )
 
 func (c *inventoryServiceClient) ListParts(ctx context.Context, partsUUIDs []string) ([]model.Part, error) {
+	// добавляем session UUID в gRPC metadata для передачи в Inventory Service
+	ctx = grpcAuth.ForwardSessionUUIDToGRPC(ctx)
+
 	inventoryReq := &inventoryV1.ListPartsRequest{
 		Filter: &inventoryV1.PartsFilter{
 			Uuids: append([]string(nil), partsUUIDs...),

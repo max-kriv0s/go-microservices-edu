@@ -42,6 +42,12 @@ func (a *App) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	err := a.diContainer.migrator.Up()
+	if err != nil {
+		logger.Error(ctx, "Ошибка миграции базы данных: %v\n", zap.Error(err))
+		return err
+	}
+
 	// Консьюмер
 	go func() {
 		if err := a.runConsumer(ctx); err != nil {
@@ -79,6 +85,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initCloser,
 		a.initHTTPServer,
 		a.initRouter,
+		a.initMigrator,
 	}
 
 	for _, f := range inits {
@@ -127,6 +134,7 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	serverTimeout := config.AppConfig().OrderHTTP.ServerTimeout()
 	r.Use(middleware.Timeout(serverTimeout))
+	r.Use(a.diContainer.AuthInterceptor().Handle)
 
 	r.Get("/health", health.Handler)
 
@@ -170,6 +178,12 @@ func (a *App) runConsumer(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (a *App) initMigrator(ctx context.Context) error {
+	a.diContainer.Migrator(ctx)
 
 	return nil
 }

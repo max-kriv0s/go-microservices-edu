@@ -37,7 +37,7 @@ func (UnimplementedHandler) APIV1OrdersOrderUUIDGet(ctx context.Context, params 
 // пользователем деталей.
 //
 // POST /api/v1/orders
-func (UnimplementedHandler) CreateOrder(ctx context.Context, req *CreateOrderRequestDto) (r CreateOrderRes, _ error) {
+func (UnimplementedHandler) CreateOrder(ctx context.Context, req *CreateOrderRequestDto, params CreateOrderParams) (r CreateOrderRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
