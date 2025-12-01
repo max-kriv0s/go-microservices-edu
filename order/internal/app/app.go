@@ -83,6 +83,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.registerLoggerClose,
 		a.initHTTPServer,
 		a.initRouter,
 		a.initMigrator,
@@ -104,10 +105,17 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(ctx context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	opts := logger.InitOptions{
+		LogLevel:     config.AppConfig().Logger.Level(),
+		AsJSON:       config.AppConfig().Logger.AsJson(),
+		EnableStdout: config.AppConfig().Logger.EnableStdout(),
+		EnableOTLP:   config.AppConfig().Logger.EnableOTLP(),
+		OTLPEndpoint: config.AppConfig().Logger.OTLPEndpoint(),
+		ServiceName:  config.AppConfig().Logger.ServiceName(),
+		ServiceEnv:   config.AppConfig().Logger.ServiceEnv(),
+	}
+
+	return logger.Init(ctx, opts)
 }
 
 func (a *App) initCloser(ctx context.Context) error {
@@ -184,6 +192,13 @@ func (a *App) runConsumer(ctx context.Context) error {
 
 func (a *App) initMigrator(ctx context.Context) error {
 	a.diContainer.Migrator(ctx)
+
+	return nil
+}
+
+func (a *App) registerLoggerClose(ctx context.Context) error {
+	closer.AddNamed("logger zap", logger.Sync)   // Сбрасываем буферы zap
+	closer.AddNamed("logger otlp", logger.Close) // Закрываем OTLP ресурсы
 
 	return nil
 }

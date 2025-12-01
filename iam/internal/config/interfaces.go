@@ -5,6 +5,11 @@ import "time"
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	EnableStdout() bool
+	EnableOTLP() bool
+	OTLPEndpoint() string
+	ServiceName() string
+	ServiceEnv() string
 }
 
 type IamGRPCConfig interface {
