@@ -34,3 +34,5 @@ node_modules
 .kafka_data
 .postgres_iam_data
 .es_data
+.prometheus_data
+.grafana_data

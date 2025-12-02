@@ -12,8 +12,10 @@ import (
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/api/health"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/config"
+	orderMetrics "github.com/max-kriv0s/go-microservices-edu/order/internal/metrics"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
+	platformMetrics "github.com/max-kriv0s/go-microservices-edu/platform/pkg/metrics"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 )
 
@@ -87,6 +89,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initHTTPServer,
 		a.initRouter,
 		a.initMigrator,
+		a.initMetrics,
 	}
 
 	for _, f := range inits {
@@ -110,9 +113,9 @@ func (a *App) initLogger(ctx context.Context) error {
 		AsJSON:       config.AppConfig().Logger.AsJson(),
 		EnableStdout: config.AppConfig().Logger.EnableStdout(),
 		EnableOTLP:   config.AppConfig().Logger.EnableOTLP(),
-		OTLPEndpoint: config.AppConfig().Logger.OTLPEndpoint(),
-		ServiceName:  config.AppConfig().Logger.ServiceName(),
-		ServiceEnv:   config.AppConfig().Logger.ServiceEnv(),
+		OTLPEndpoint: config.AppConfig().OtelCollector.CollectorEndpoint(),
+		ServiceName:  config.AppConfig().OtelCollector.ServiceName(),
+		ServiceEnv:   config.AppConfig().OtelCollector.ServiceEnv(),
 	}
 
 	return logger.Init(ctx, opts)
@@ -199,6 +202,21 @@ func (a *App) initMigrator(ctx context.Context) error {
 func (a *App) registerLoggerClose(ctx context.Context) error {
 	closer.AddNamed("logger zap", logger.Sync)   // Сбрасываем буферы zap
 	closer.AddNamed("logger otlp", logger.Close) // Закрываем OTLP ресурсы
+
+	return nil
+}
+
+func (a *App) initMetrics(ctx context.Context) error {
+	err := platformMetrics.InitProvider(ctx, config.AppConfig().OtelCollector)
+	if err != nil {
+		return err
+	}
+	closer.AddNamed("platform metrics", platformMetrics.Shutdown)
+
+	err = orderMetrics.InitMetrics()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

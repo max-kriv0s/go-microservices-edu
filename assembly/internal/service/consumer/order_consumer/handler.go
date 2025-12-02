@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	"github.com/max-kriv0s/go-microservices-edu/assembly/internal/metrics"
 	"github.com/max-kriv0s/go-microservices-edu/assembly/internal/model"
 	kafkaConsumer "github.com/max-kriv0s/go-microservices-edu/platform/pkg/kafka/consumer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
@@ -57,6 +58,8 @@ func (s *service) OrderPaidHandler(ctx context.Context, msg kafkaConsumer.Messag
 		UserUUID:     event.UserUUID,
 		BuildTimeSec: int64(delay.Seconds()),
 	}
+
+	metrics.AssemblyDuration.Record(ctx, delay.Seconds())
 
 	err = s.orderProducerService.ProduceShipAssembled(ctx, shipAssemblyEvent)
 	if err != nil {

@@ -39,6 +39,7 @@ var (
 	otelProvider       *otelLogSdk.LoggerProvider // OTLP provider для graceful shutdown\
 	serviceName        string
 	serviceEnvironment string
+	errInit            error
 )
 
 // logger обёртка над zap.Logger с enrich поддержкой контекста
@@ -61,6 +62,12 @@ type InitOptions struct {
 // Поддерживает одновременную запись в stdout и OTLP коллектор.
 func Init(ctx context.Context, opts InitOptions) error {
 	initOnce.Do(func() {
+		// Валидация: если включён OTLP, должны быть все необходимые поля
+		if opts.EnableOTLP && opts.OTLPEndpoint == "" {
+			errInit = fmt.Errorf("OTEL_COLLECTOR_ENDPOINT is required when OTLP output is enabled")
+			return
+		}
+
 		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(opts.LogLevel))
 		otlpEndpoint = opts.OTLPEndpoint
 		serviceName = opts.ServiceName
@@ -74,7 +81,7 @@ func Init(ctx context.Context, opts InitOptions) error {
 		}
 	})
 
-	return nil
+	return errInit
 }
 
 // buildCores создает слайс cores для zapcore.Tee.

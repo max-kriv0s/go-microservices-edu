@@ -78,9 +78,9 @@ func (a *App) initLogger(ctx context.Context) error {
 		AsJSON:       config.AppConfig().Logger.AsJson(),
 		EnableStdout: config.AppConfig().Logger.EnableStdout(),
 		EnableOTLP:   config.AppConfig().Logger.EnableOTLP(),
-		OTLPEndpoint: config.AppConfig().Logger.OTLPEndpoint(),
-		ServiceName:  config.AppConfig().Logger.ServiceName(),
-		ServiceEnv:   config.AppConfig().Logger.ServiceEnv(),
+		OTLPEndpoint: config.AppConfig().OtelCollector.CollectorEndpoint(),
+		ServiceName:  config.AppConfig().OtelCollector.ServiceName(),
+		ServiceEnv:   config.AppConfig().OtelCollector.ServiceEnv(),
 	}
 
 	return logger.Init(ctx, opts)

@@ -90,6 +90,14 @@ processors:
 # Exporters отправляют обработанные данные во внешние системы.
 
 exporters:
+  # PROMETHEUS REMOTE WRITE - отправка метрик в Prometheus
+  # Remote Write - это способ отправки метрик в Prometheus "проталкиванием" (push)
+  # В отличие от обычного scraping, где Prometheus сам забирает данные
+  prometheusremotewrite:
+    # URL endpoint Prometheus для приема метрик
+    # Prometheus автоматически предоставляет этот endpoint
+    endpoint: http://prometheus:9090/api/v1/write
+
   # ELASTICSEARCH EXPORTER - отправка логов в Elasticsearch
   elasticsearch:
     # ENDPOINTS: список адресов Elasticsearch кластера
@@ -174,6 +182,17 @@ service:
 
   # PIPELINES: определяем потоки обработки данных
   pipelines:
+    # Пайплайн для метрик
+    # Обрабатывает только метрики (счетчики, гистограммы, gauge)
+    metrics:
+      # Источники данных - получаем метрики от UFO приложения через OTLP
+      receivers: [otlp]
+      # Последовательность обработки данных (порядок важен!)
+      # batch - группировка для эффективности отправки
+      processors: [batch]
+      # Отправляем обработанные метрики в Prometheus
+      exporters: [prometheusremotewrite]
+
     # LOGS PIPELINE: обработка логов
     logs:
       # ПОСЛЕДОВАТЕЛЬНОСТЬ ОБРАБОТКИ: receivers → processors → exporters

@@ -11,11 +11,12 @@ import (
 var appConfig *config
 
 type config struct {
-	Logger   LoggerConfig
-	IamGRPC  IamGRPCConfig
-	Postgres PostgresConfig
-	Redis    RedisConfig
-	Session  SessionConfig
+	Logger        LoggerConfig
+	IamGRPC       IamGRPCConfig
+	Postgres      PostgresConfig
+	Redis         RedisConfig
+	Session       SessionConfig
+	OtelCollector OtelCollectorConfig
 }
 
 func Load(path ...string) error {
@@ -49,12 +50,18 @@ func Load(path ...string) error {
 		return err
 	}
 
+	otelCollectorCfg, err := env.NewOtelCollectroConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
-		Logger:   loggerCfg,
-		IamGRPC:  iamGrpcCfg,
-		Postgres: postgresCfg,
-		Redis:    redisCfg,
-		Session:  sessionCfg,
+		Logger:        loggerCfg,
+		IamGRPC:       iamGrpcCfg,
+		Postgres:      postgresCfg,
+		Redis:         redisCfg,
+		Session:       sessionCfg,
+		OtelCollector: otelCollectorCfg,
 	}
 
 	return nil
