@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric/noop"
 
 	clientMocks "github.com/max-kriv0s/go-microservices-edu/order/internal/client/grpc/mocks"
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/metrics"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/repository/mocks"
 	producerMocks "github.com/max-kriv0s/go-microservices-edu/order/internal/service/mocks"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
@@ -29,6 +32,9 @@ func (s *ServiceSuite) Ctx() context.Context {
 
 func (s *ServiceSuite) SetupTest() {
 	logger.InitForTest()
+
+	otel.SetMeterProvider(noop.NewMeterProvider())
+	_ = metrics.InitMetrics()
 
 	s.inventoryServiceClient = clientMocks.NewInventoryServiceClient(s.T())
 	s.paymentServiceClient = clientMocks.NewPaymentServiceClient(s.T())

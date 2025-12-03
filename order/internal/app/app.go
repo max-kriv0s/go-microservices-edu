@@ -16,6 +16,7 @@ import (
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 	platformMetrics "github.com/max-kriv0s/go-microservices-edu/platform/pkg/metrics"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/tracing"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 )
 
@@ -90,6 +91,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initRouter,
 		a.initMigrator,
 		a.initMetrics,
+		a.initTracing,
 	}
 
 	for _, f := range inits {
@@ -142,6 +144,7 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(tracing.HTTPHandlerMiddleware(config.AppConfig().OtelCollector.ServiceName()))
 
 	serverTimeout := config.AppConfig().OrderHTTP.ServerTimeout()
 	r.Use(middleware.Timeout(serverTimeout))
@@ -217,6 +220,17 @@ func (a *App) initMetrics(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (a *App) initTracing(ctx context.Context) error {
+	err := tracing.InitTracer(ctx, config.AppConfig().OtelCollector)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("tracer", tracing.ShutdownTracer)
 
 	return nil
 }

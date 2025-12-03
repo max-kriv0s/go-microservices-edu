@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -139,9 +140,16 @@ func (a *App) seedDataInDB(ctx context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	interceptors := make([]grpc.UnaryServerInterceptor, 0)
+
+	// для интеграционных тестов отключим iam
+	if !a.isTest() {
+		interceptors = append(interceptors, a.diContainer.AuthInterceptor().Unary())
+	}
+
 	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()),
 		grpc.ChainUnaryInterceptor(
-			a.diContainer.AuthInterceptor().Unary(),
+			interceptors...,
 		))
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()
@@ -174,4 +182,8 @@ func (a *App) registerLoggerClose(ctx context.Context) error {
 	closer.AddNamed("logger otlp", logger.Close) // Закрываем OTLP ресурсы
 
 	return nil
+}
+
+func (a *App) isTest() bool {
+	return os.Getenv("IS_TEST") == "true"
 }

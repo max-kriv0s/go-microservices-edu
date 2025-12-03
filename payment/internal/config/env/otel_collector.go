@@ -7,9 +7,10 @@ import (
 )
 
 type otelCollectorEnvConfig struct {
-	OTLPEndpoint string `env:"OTEL_COLLECTOR_ENDPOINT"`
-	ServiceName  string `env:"SERVICE_NAME,required"`
-	ServiceEnv   string `env:"SERVICE_ENV,required"`
+	OTLPEndpoint        string `env:"OTEL_COLLECTOR_ENDPOINT"`
+	ServiceName         string `env:"SERVICE_NAME,required"`
+	ServiceEnv          string `env:"SERVICE_ENV,required"`
+	ServiceVersionValue string `env:"OTEL_SERVICE_VERSION"`
 }
 
 type otelCollectorConfig struct {
@@ -39,4 +40,12 @@ func (cfg *otelCollectorConfig) ServiceEnv() string {
 
 func (cfg *otelCollectorConfig) CollectorInterval() time.Duration {
 	return 10 * time.Second
+}
+
+func (cfg *otelCollectorConfig) Environment() string {
+	return cfg.raw.ServiceEnv
+}
+
+func (cfg *otelCollectorConfig) ServiceVersion() string {
+	return cfg.raw.ServiceVersionValue
 }

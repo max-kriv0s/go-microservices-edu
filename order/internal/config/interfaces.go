@@ -11,6 +11,8 @@ type OtelCollectorConfig interface {
 	ServiceName() string
 	ServiceEnv() string
 	CollectorInterval() time.Duration
+	Environment() string
+	ServiceVersion() string
 }
 
 type LoggerConfig interface {

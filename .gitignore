@@ -36,3 +36,5 @@ node_modules
 .es_data
 .prometheus_data
 .grafana_data
+.jaeger_data
+.jaeger_key
