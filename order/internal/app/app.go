@@ -12,8 +12,11 @@ import (
 
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/api/health"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/config"
+	orderMetrics "github.com/max-kriv0s/go-microservices-edu/order/internal/metrics"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/closer"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
+	platformMetrics "github.com/max-kriv0s/go-microservices-edu/platform/pkg/metrics"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/tracing"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 )
 
@@ -83,9 +86,12 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.registerLoggerClose,
 		a.initHTTPServer,
 		a.initRouter,
 		a.initMigrator,
+		a.initMetrics,
+		a.initTracing,
 	}
 
 	for _, f := range inits {
@@ -104,10 +110,17 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(ctx context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	opts := logger.InitOptions{
+		LogLevel:     config.AppConfig().Logger.Level(),
+		AsJSON:       config.AppConfig().Logger.AsJson(),
+		EnableStdout: config.AppConfig().Logger.EnableStdout(),
+		EnableOTLP:   config.AppConfig().Logger.EnableOTLP(),
+		OTLPEndpoint: config.AppConfig().OtelCollector.CollectorEndpoint(),
+		ServiceName:  config.AppConfig().OtelCollector.ServiceName(),
+		ServiceEnv:   config.AppConfig().OtelCollector.ServiceEnv(),
+	}
+
+	return logger.Init(ctx, opts)
 }
 
 func (a *App) initCloser(ctx context.Context) error {
@@ -131,6 +144,7 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(tracing.HTTPHandlerMiddleware(config.AppConfig().OtelCollector.ServiceName()))
 
 	serverTimeout := config.AppConfig().OrderHTTP.ServerTimeout()
 	r.Use(middleware.Timeout(serverTimeout))
@@ -184,6 +198,39 @@ func (a *App) runConsumer(ctx context.Context) error {
 
 func (a *App) initMigrator(ctx context.Context) error {
 	a.diContainer.Migrator(ctx)
+
+	return nil
+}
+
+func (a *App) registerLoggerClose(ctx context.Context) error {
+	closer.AddNamed("logger zap", logger.Sync)   // Сбрасываем буферы zap
+	closer.AddNamed("logger otlp", logger.Close) // Закрываем OTLP ресурсы
+
+	return nil
+}
+
+func (a *App) initMetrics(ctx context.Context) error {
+	err := platformMetrics.InitProvider(ctx, config.AppConfig().OtelCollector)
+	if err != nil {
+		return err
+	}
+	closer.AddNamed("platform metrics", platformMetrics.Shutdown)
+
+	err = orderMetrics.InitMetrics()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) initTracing(ctx context.Context) error {
+	err := tracing.InitTracer(ctx, config.AppConfig().OtelCollector)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("tracer", tracing.ShutdownTracer)
 
 	return nil
 }

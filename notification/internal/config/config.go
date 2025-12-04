@@ -14,6 +14,7 @@ type config struct {
 	OrderAssembledConsumer OrderAssembledConsumerConfig
 	OrderPaidConsumer      OrderPaidConsumerConfig
 	TelegramBot            TelegramBotConfig
+	OtelCollector          OtelCollectorConfig
 }
 
 func Load(path ...string) error {
@@ -47,12 +48,18 @@ func Load(path ...string) error {
 		return err
 	}
 
+	otelCollectorCfg, err := env.NewOtelCollectroConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
 		Logger:                 loggerCfg,
 		Kafka:                  kafkaCfg,
 		OrderAssembledConsumer: orderAssembledConsumerCfg,
 		OrderPaidConsumer:      orderPaidConsumerCfg,
 		TelegramBot:            telegramBotCfg,
+		OtelCollector:          otelCollectorCfg,
 	}
 
 	return nil

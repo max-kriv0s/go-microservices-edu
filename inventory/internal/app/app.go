@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -47,6 +48,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.registerLoggerClose,
 		a.initListener,
 		a.initMongoIndexes,
 		a.seedDataInDB,
@@ -69,10 +71,17 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(ctx context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	opts := logger.InitOptions{
+		LogLevel:     config.AppConfig().Logger.Level(),
+		AsJSON:       config.AppConfig().Logger.AsJson(),
+		EnableStdout: config.AppConfig().Logger.EnableStdout(),
+		EnableOTLP:   config.AppConfig().Logger.EnableOTLP(),
+		OTLPEndpoint: config.AppConfig().OtelCollector.CollectorEndpoint(),
+		ServiceName:  config.AppConfig().OtelCollector.ServiceName(),
+		ServiceEnv:   config.AppConfig().OtelCollector.ServiceEnv(),
+	}
+
+	return logger.Init(ctx, opts)
 }
 
 func (a *App) initCloser(ctx context.Context) error {
@@ -131,9 +140,16 @@ func (a *App) seedDataInDB(ctx context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	interceptors := make([]grpc.UnaryServerInterceptor, 0)
+
+	// для интеграционных тестов отключим iam
+	if !a.isTest() {
+		interceptors = append(interceptors, a.diContainer.AuthInterceptor().Unary())
+	}
+
 	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()),
 		grpc.ChainUnaryInterceptor(
-			a.diContainer.AuthInterceptor().Unary(),
+			interceptors...,
 		))
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()
@@ -159,4 +175,15 @@ func (a *App) runGRPCServer(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (a *App) registerLoggerClose(ctx context.Context) error {
+	closer.AddNamed("logger zap", logger.Sync)   // Сбрасываем буферы zap
+	closer.AddNamed("logger otlp", logger.Close) // Закрываем OTLP ресурсы
+
+	return nil
+}
+
+func (a *App) isTest() bool {
+	return os.Getenv("IS_TEST") == "true"
 }

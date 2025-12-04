@@ -15,6 +15,7 @@ type config struct {
 	Kafka                 KafkaConfig
 	OrderPaidConsumer     OrderPaidConsumerConfig
 	OrderAssembleProducer OrderAssembleProducerConfig
+	OtelCollector         OtelCollectorConfig
 }
 
 func Load(path ...string) error {
@@ -43,11 +44,17 @@ func Load(path ...string) error {
 		return err
 	}
 
+	otelCollectorCfg, err := env.NewOtelCollectroConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
 		Logger:                loggerCfg,
 		Kafka:                 kafkaCfg,
 		OrderPaidConsumer:     orderPaidConsumerCfg,
 		OrderAssembleProducer: orderAssembleProducerCfg,
+		OtelCollector:         otelCollectorCfg,
 	}
 
 	return nil

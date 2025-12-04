@@ -35,6 +35,7 @@ import (
 	kafkaMiddleware "github.com/max-kriv0s/go-microservices-edu/platform/pkg/middleware/kafka"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator"
 	migratorPg "github.com/max-kriv0s/go-microservices-edu/platform/pkg/migrator/pg"
+	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/tracing"
 	orderV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/openapi/order/v1"
 	authV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/auth/v1"
 	inventoryV1 "github.com/max-kriv0s/go-microservices-edu/shared/pkg/proto/inventory/v1"
@@ -106,8 +107,9 @@ func (d *diContainer) PaymentServiceClient(ctx context.Context) client.PaymentSe
 	paymentConn, err := grpc.NewClient(
 		config.AppConfig().PaymentGRPC.Address(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(
+		grpc.WithChainUnaryInterceptor(
 			timeout.UnaryClientInterceptor(config.AppConfig().OrderHTTP.GRPCTimeout()),
+			tracing.UnaryClientInterceptor(config.AppConfig().OtelCollector.ServiceName()),
 		),
 	)
 	if err != nil {

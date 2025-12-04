@@ -3,8 +3,11 @@ package order
 import (
 	"context"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 
+	"github.com/max-kriv0s/go-microservices-edu/order/internal/metrics"
 	"github.com/max-kriv0s/go-microservices-edu/order/internal/model"
 	"github.com/max-kriv0s/go-microservices-edu/platform/pkg/logger"
 )
@@ -40,6 +43,14 @@ func (s *service) CreateOrder(ctx context.Context, data model.CreateOrderRequest
 	}
 
 	newOrder.OrderUUID = OrderUUID
+
+	metrics.OrderTotal.Add(ctx, 1)
+
+	metrics.OrdersRevenueTotal.Add(
+		ctx,
+		totalPrice,
+		metric.WithAttributes(attribute.String("currency", "RUB")),
+	)
 
 	return newOrder, nil
 }

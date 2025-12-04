@@ -11,8 +11,9 @@ import (
 var appConfig *config
 
 type config struct {
-	Logger      LoggerConfig
-	PaymentGRPC PaymentGRPCConfig
+	Logger        LoggerConfig
+	PaymentGRPC   PaymentGRPCConfig
+	OtelCollector OtelCollectorConfig
 }
 
 func Load(path ...string) error {
@@ -31,9 +32,15 @@ func Load(path ...string) error {
 		return err
 	}
 
+	otelCollectorCfg, err := env.NewOtelCollectroConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
-		Logger:      loggerCfg,
-		PaymentGRPC: paymentGRPCCfg,
+		Logger:        loggerCfg,
+		PaymentGRPC:   paymentGRPCCfg,
+		OtelCollector: otelCollectorCfg,
 	}
 
 	return nil

@@ -77,6 +77,7 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 	appEnv := map[string]string{
 		// Переопределяем хост MongoDB для подключения к контейнеру из testcontainers
 		testcontainers.MongoHostKey: generatedMongo.Config().ContainerName,
+		"IS_TEST":                   "true",
 	}
 
 	// Создаем настраиваемую стратегию ожидания с увеличенным таймаутом

@@ -15,6 +15,7 @@ type config struct {
 	InventoryGRPC InventoryGRPCConfig
 	Mongo         MongoConfig
 	IamGRPC       IamGRPCConfig
+	OtelCollector OtelCollectorConfig
 }
 
 func Load(path ...string) error {
@@ -43,11 +44,17 @@ func Load(path ...string) error {
 		return err
 	}
 
+	otelCollectorCfg, err := env.NewOtelCollectroConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
 		Logger:        loggerCfg,
 		InventoryGRPC: inventoryGRPCCfg,
 		Mongo:         mongoCfg,
 		IamGRPC:       iamGRPCCfg,
+		OtelCollector: otelCollectorCfg,
 	}
 
 	return nil

@@ -20,6 +20,7 @@ type config struct {
 	OrderPaidProducer      OrderPaidProducerConfig
 	OrderAssembledConsumer OrderAssembledConsumerConfig
 	IamGRPC                IamGRPCConfig
+	OtelCollector          OtelCollectorConfig
 }
 
 func Load(path ...string) error {
@@ -73,6 +74,11 @@ func Load(path ...string) error {
 		return err
 	}
 
+	otelCollectorCfg, err := env.NewOtelCollectroConfig()
+	if err != nil {
+		return err
+	}
+
 	appConfig = &config{
 		Logger:                 loggerCfg,
 		OrderHTTP:              orderHTTPCfg,
@@ -83,6 +89,7 @@ func Load(path ...string) error {
 		OrderPaidProducer:      orderPaidProducerCfg,
 		OrderAssembledConsumer: orderAssembledConsumerCfg,
 		IamGRPC:                iamGRPCCfg,
+		OtelCollector:          otelCollectorCfg,
 	}
 
 	return nil
