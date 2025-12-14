@@ -35,20 +35,6 @@ services: # Раздел, описывающий контейнеры, кото�
       - microservices-net
       # Подключаемся к общей сети, чтобы другие микросервисы (например, Order-сервис) могли найти этот контейнер по имени "postgres-order"
 
-  order:
-    build:
-      context: ./../../../
-      dockerfile: deploy/docker/order/Dockerfile
-    container_name: order-services
-    env_file:
-      - ./.env # путь к env относительно compose-файла
-    restart: unless-stopped
-    depends_on:
-      postgres-order:
-        condition: service_healthy
-    networks:
-      - microservices-net
-
 volumes: # Раздел с томами — определяем, какие дисковые ресурсы создаёт и использует Docker
   postgres_order_data:
   # Именованный том для хранения данных Order-сервиса в PostgreSQL

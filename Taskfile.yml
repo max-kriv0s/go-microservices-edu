@@ -45,7 +45,7 @@ vars:
   OPEN_API_FILES: '{{.ROOT_DIR}}/shared/api/bundles'
 
   MODULES: assembly inventory order payment platform iam notification
-  SERVICES: core,assembly,inventory,order,payment,iam,notification
+  SERVICES: core,assembly,inventory,order,payment,iam,notification,envoy
 
   ORDER_MIGRATIONS_DIR: '{{.ROOT_DIR}}/order/migrations'
   IAM_MIGRATIONS_DIR: '{{.ROOT_DIR}}/iam/migrations'
@@ -469,46 +469,140 @@ tasks:
       - echo "[task] 🛑 Останавливаем core контейнеры"
       - docker compose down --volumes
 
+  up-inventory-local:
+    desc: Поднять Inventory сервис и все его зависимости
+    dir: deploy/compose/inventory
+    cmds:
+      - echo "[task] 📦 Поднимаем Inventory с зависимостями"
+      - docker compose -f docker-compose.local.yml up --build --detach
+
+  down-inventory-local:
+    desc: Остановить и удалить Inventory сервис и все его зависимости
+    dir: deploy/compose/inventory
+    cmds:
+      - echo "[task] 🛑 Останавливаем Inventory с зависимостями"
+      - docker compose -f docker-compose.local.yml down --volumes
+
   up-inventory:
     desc: Поднять Inventory сервис и все его зависимости
     dir: deploy/compose/inventory
     cmds:
       - echo "[task] 📦 Поднимаем Inventory с зависимостями"
-      - docker compose up --build --detach
+      - docker compose -f docker-compose.yml up --build --detach
 
   down-inventory:
     desc: Остановить и удалить Inventory сервис и все его зависимости
     dir: deploy/compose/inventory
     cmds:
       - echo "[task] 🛑 Останавливаем Inventory с зависимостями"
-      - docker compose down --volumes
+      - docker compose -f docker-compose.yml down --volumes
+
+  up-order-local:
+    desc: Поднять Order сервис и все его зависимости
+    dir: deploy/compose/order
+    cmds:
+      - echo "[task] 📦 Поднимаем Order с зависимостями"
+      - docker compose -f docker-compose.local.yml up --build --detach
+
+  down-order-local:
+    desc: Остановить и удалить Order сервис и все его зависимости
+    dir: deploy/compose/order
+    cmds:
+      - echo "[task] 🛑 Останавливаем Order с зависимостями"
+      - docker compose -f docker-compose.local.yml down --volumes
 
   up-order:
     desc: Поднять Order сервис и все его зависимости
     dir: deploy/compose/order
     cmds:
       - echo "[task] 📦 Поднимаем Order с зависимостями"
-      - docker compose up --build --detach
+      - docker compose -f docker-compose.yml up --build --detach
 
   down-order:
     desc: Остановить и удалить Order сервис и все его зависимости
     dir: deploy/compose/order
     cmds:
       - echo "[task] 🛑 Останавливаем Order с зависимостями"
-      - docker compose down --volumes
+      - docker compose -f docker-compose.yml down --volumes
+
+  up-iam-local:
+    desc: Поднять IAM сервис и все его зависимости
+    dir: deploy/compose/iam
+    cmds:
+      - echo "[task] 🔐 Поднимаем IAM с зависимостями"
+      - docker compose -f docker-compose.local.yml up --build --detach
+
+  down-iam-local:
+    desc: Остановить и удалить IAM сервис и все его зависимости
+    dir: deploy/compose/iam
+    cmds:
+      - echo "[task] 🛑 Останавливаем IAM с зависимостями"
+      - docker compose -f docker-compose.local.yml down --volumes
 
   up-iam:
     desc: Поднять IAM сервис и все его зависимости
     dir: deploy/compose/iam
     cmds:
       - echo "[task] 🔐 Поднимаем IAM с зависимостями"
-      - docker compose up --build --detach
+      - docker compose -f docker-compose.yml up --build --detach
 
   down-iam:
     desc: Остановить и удалить IAM сервис и все его зависимости
     dir: deploy/compose/iam
     cmds:
       - echo "[task] 🛑 Останавливаем IAM с зависимостями"
+      - docker compose -f docker-compose.yml down --volumes
+
+  up-assembly:
+    desc: Поднять Assembly сервис
+    dir: deploy/compose/assembly
+    cmds:
+      - echo "[task] 🔐 Поднимаем Assembly"
+      - docker compose up --build --detach
+  down-assembly:
+    desc: Остановить Assembly сервис
+    dir: deploy/compose/assembly
+    cmds:
+      - echo "[task] 🛑 Останавливаем Assembly"
+      - docker compose down --volumes
+
+  up-notification:
+    desc: Поднять Notification сервис
+    dir: deploy/compose/notification
+    cmds:
+      - echo "[task] 🔐 Поднимаем Notification"
+      - docker compose up --build --detach
+  down-notification:
+    desc: Остановить Notification сервис
+    dir: deploy/compose/notification
+    cmds:
+      - echo "[task] 🛑 Останавливаем Notification"
+      - docker compose down --volumes
+
+  up-payment:
+    desc: Поднять Payment сервис
+    dir: deploy/compose/payment
+    cmds:
+      - echo "[task] 🔐 Поднимаем Payment"
+      - docker compose up --build --detach
+  down-payment:
+    desc: Остановить Payment сервис
+    dir: deploy/compose/payment
+    cmds:
+      - echo "[task] 🛑 Останавливаем Payment"
+      - docker compose down --volumes
+
+  up-envoy:
+    desc: Поднять Envoy
+    dir: deploy/compose/envoy
+    cmds:
+      - echo "[task] 🔐 Поднимаем Envoy"
+      - docker compose up --build --detach
+  down-envoy:
+    desc: Остановить Envoy
+    dir: deploy/compose/envoy
+    cmds:
+      - echo "[task] 🛑 Останавливаем Envoy"
       - docker compose down --volumes
 
   up-all:
@@ -526,6 +620,30 @@ tasks:
       - task down-inventory
       - task down-order
       - task down-iam
+
+  up-all-services:
+    desc: Поднять все сервисы по очереди в Docker вместе с зависимостями
+    cmds:
+      - task up-core
+      - task up-assembly
+      - task up-notification
+      - task up-payment
+      - task up-inventory
+      - task up-order
+      - task up-iam
+      - task up-envoy
+
+  down-all-services:
+    desc: Остановить и удалить все сервисы по очереди в Docker вместе с зависимостями
+    cmds:
+      - task down-core
+      - task down-assembly
+      - task down-notification
+      - task down-payment
+      - task down-inventory
+      - task down-order
+      - task down-iam
+      - task down-envoy
 
   test-iam:
     desc: '🔐 Тестирование IAM сервиса (регистрация, логин, whoami)'
@@ -934,6 +1052,31 @@ tasks:
       - |
         ENV_FILE="{{.ENVDIR}}/.env"
         TEMPLATE_FILE="{{.ENVDIR}}/.env.template"
+        SCRIPT="{{.ENVDIR}}/generate-env.sh"
+
+        if [ ! -f "$ENV_FILE" ]; then
+          if [ -f "$TEMPLATE_FILE" ]; then
+            echo "🔄 Файл $ENV_FILE не найден, создаем из шаблона $TEMPLATE_FILE"
+            cp "$TEMPLATE_FILE" "$ENV_FILE"
+            echo "✅ Создан файл $ENV_FILE. Проверьте и отредактируйте значения переменных при необходимости."
+          else
+            echo "❌ Шаблон $TEMPLATE_FILE не найден!"
+            exit 1
+          fi
+        fi
+
+        chmod +x "$SCRIPT"
+        # Передаем список сервисов в виде строки с разделителями-запятыми
+        export SERVICES="{{.SERVICES}}"
+        ENV_SUBST={{.ENVSUBST}} "$SCRIPT"
+
+  env-local:generate:
+    desc: 'Генерирует .env файлы для всех сервисов из шаблонов и единого файла конфигурации'
+    deps: [env:install-envsubst]
+    cmds:
+      - |
+        ENV_FILE="{{.ENVDIR}}/.env"
+        TEMPLATE_FILE="{{.ENVDIR}}/.env.local.template"
         SCRIPT="{{.ENVDIR}}/generate-env.sh"
 
         if [ ! -f "$ENV_FILE" ]; then
