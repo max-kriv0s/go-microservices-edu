@@ -16,6 +16,7 @@ vars:
   MOCKERY_VERSION: 'v2.53.3'
   GOOSE_VERSION: 'v3.26.0'
   ENVSUBST_VERSION: 'v1.4.3'
+  PROTOC_VERSION: 23.4
 
   BIN_DIR: '{{.ROOT_DIR}}/bin'
   GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
@@ -32,6 +33,7 @@ vars:
   GOOSE: '{{.BIN_DIR}}/goose'
   ENVSUBST: '{{.BIN_DIR}}/envsubst'
   ENVDIR: '{{.ROOT_DIR}}/deploy/env'
+  PROTOC: '{{.BIN_DIR}}/protoc'
 
   COVERAGE_DIR: '{{.ROOT_DIR}}/coverage'
   COVERAGE_FILE: total.out
@@ -162,6 +164,21 @@ tasks:
           chmod +x {{.BUF}}
         }
 
+  install-protoc:
+    desc: 'Устанавливает protoc в каталог bin'
+    cmds:
+      - |
+        [ -f {{.PROTOC}} ] || {
+          mkdir -p {{.BIN_DIR}} tmp-protoc
+          curl -sSL \
+            "https://github.com/protocolbuffers/protobuf/releases/download/v{{.PROTOC_VERSION}}/protoc-{{.PROTOC_VERSION}}-osx-aarch_64.zip" \
+            -o tmp-protoc/protoc.zip
+          unzip -o tmp-protoc/protoc.zip -d tmp-protoc
+          mv tmp-protoc/bin/protoc {{.PROTOC}}
+          rm -rf tmp-protoc
+          chmod +x {{.PROTOC}}
+        }
+
   proto:install-plugins:
     desc: 'Устанавливает protoc плагины в каталог bin'
     cmds:
@@ -179,12 +196,32 @@ tasks:
           GOBIN={{.BIN_DIR}} go install github.com/envoyproxy/protoc-gen-validate@{{.PROTOC_GEN_VALIDATE_VERSION}}
         }
 
+  proto:build:
+    desc: Сборка proto файлов
+    deps: [ install-buf, proto:install-plugins ]
+    dir: ./shared/proto
+    cmds:
+      - 'mkdir -p ../pkg/proto/envoy/v1'
+      - |
+        {{.BUF}} build \
+        --path auth \
+        --path user \
+        --path common \
+        --path inventory \
+        --as-file-descriptor-set \
+        --output "../pkg/proto/envoy/v1/envoy_descriptor.pb"
+
+  proto:build:all:
+    desc: Сборка всех proto дескрипторов для каждого сервиса отдельно
+    deps: [ proto:build ]
+
   proto:gen:
     deps: [install-buf, proto:install-plugins, proto:update-deps, proto:lint]
     desc: Генерация Go-кода из .proto
     dir: shared/proto
     cmds:
       - '{{.BUF}} generate'
+      - task proto:build:all
 
   proto:update-deps:
     deps: [install-buf]

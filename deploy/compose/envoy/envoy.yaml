@@ -76,7 +76,7 @@ static_resources:
                         # Здесь определяем куда направлять различные запросы
 
                         - match:
-                            prefix: '/api/v1/orders/health'
+                            prefix: '/health'
                           route:
                             cluster: orders_api_cluster
                             timeout: 5s
@@ -95,6 +95,33 @@ static_resources:
                             # Если backend не отвечает за 15 секунд — возвращаем 504 Gateway Timeout
                             timeout: 15s
 
+                        - match:
+                            prefix: '/api/v1/inventory'
+                          route:
+                            cluster: inventory_grpc_cluster
+                            timeout: 15s
+
+                        - match:
+                            prefix: '/api/v1/auth'
+                          route:
+                            cluster: iam_grpc_cluster
+                            timeout: 15s
+                          # Отключаем авторизацию
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
+
+                        - match:
+                            prefix: '/api/v1/users'
+                          route:
+                            cluster: iam_grpc_cluster
+                            timeout: 15s
+                          # Отключаем авторизацию
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
 
                         # Маршрут по умолчанию — для всех остальных запросов
                         - match:
@@ -165,9 +192,10 @@ static_resources:
                   - name: envoy.filters.http.grpc_json_transcoder
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
-                      proto_descriptor: "/etc/envoy/ufo_descriptor.pb"
-                      services: ["ufo.v1.UFOService"]
+                      proto_descriptor: "/etc/envoy/envoy_descriptor.pb"
+                      services: ["auth.v1.AuthService", "user.v1.UserService", "inventory.v1.InventoryService"]
                       match_incoming_request_route: true
+                      auto_mapping: true
                       print_options:
                         add_whitespace: true
                         always_print_primitive_fields: true
@@ -228,7 +256,7 @@ static_resources:
 
           http_health_check:
             # HTTP проверка здоровья
-            path: '/api/v1/orders/health'
+            path: '/health'
             # Путь для проверки здоровья на backend сервисе
 
       # ===============================
@@ -249,6 +277,104 @@ static_resources:
                       address: order
                       port_value: 8080
                       # Порт, на котором работает weather API внутри контейнера
+
+    # ⚠️ IAM gRPC Service Cluster (для External Authorization)
+    - name: iam_grpc_cluster
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+
+      # HTTP/2 обязательно для gRPC
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options:
+              # Настройки HTTP/2 для оптимальной производительности
+              max_concurrent_streams: 100
+              initial_stream_window_size: 65536
+              initial_connection_window_size: 1048576
+
+      # Connection pooling для производительности
+      circuit_breakers:
+        thresholds:
+        - priority: DEFAULT
+          max_connections: 10          # Ограничиваем количество соединений
+          max_pending_requests: 50     # Очередь запросов
+          max_requests: 100           # Максимальные активные запросы
+          max_retries: 3              # Максимальные retry попытки
+          track_remaining: true
+
+      # Настройки соединений
+      upstream_connection_options:
+        tcp_keepalive:
+          keepalive_probes: 3
+          keepalive_time: 30
+          keepalive_interval: 5
+
+      # # Health checking для IAM сервиса
+      # health_checks:
+      # - timeout: 1s
+      #   interval: 5s
+      #   unhealthy_threshold: 2
+      #   healthy_threshold: 2
+      #   grpc_health_check:
+      #     # service_name: "auth.v1.AuthService"
+      #     service_name: "grpc.health.v1.Health"
+
+      # Endpoint IAM gRPC сервиса
+      load_assignment:
+        cluster_name: iam_grpc_cluster
+        endpoints:
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: iam  # Docker service name
+                  port_value: 50053         # gRPC порт IAM сервиса
+
+
+    - name: inventory_grpc_cluster
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+
+     # HTTP/2 обязательно для gRPC
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options:
+              # Настройки HTTP/2 для оптимальной производительности
+              max_concurrent_streams: 100
+              initial_stream_window_size: 65536
+              initial_connection_window_size: 1048576
+
+      # Connection pooling для производительности
+      circuit_breakers:
+        thresholds:
+        - priority: DEFAULT
+          max_connections: 10          # Ограничиваем количество соединений
+          max_pending_requests: 50     # Очередь запросов
+          max_requests: 100           # Максимальные активные запросы
+          max_retries: 3              # Максимальные retry попытки
+          track_remaining: true
+
+      # Настройки соединений
+      upstream_connection_options:
+        tcp_keepalive:
+          keepalive_probes: 3
+          keepalive_time: 30
+          keepalive_interval: 5
+
+      load_assignment:
+        cluster_name: inventory_grpc_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: inventory
+                      port_value: 50051
+
 # ===============================
 # ПОТОК ОБРАБОТКИ ЗАПРОСА:
 # ===============================

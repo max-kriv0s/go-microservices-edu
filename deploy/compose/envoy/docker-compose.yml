@@ -14,6 +14,7 @@ services: # Раздел, описывающий контейнеры, кото�
 
     volumes:
       - ./envoy.yaml:/etc/envoy/envoy.yaml
+      - ../../../shared/pkg/proto/envoy/v1/envoy_descriptor.pb:/etc/envoy/envoy_descriptor.pb:ro
       # Примонтируем локальный конфигурационный файл Envoy в контейнер
 
     ports:
@@ -37,6 +38,9 @@ services: # Раздел, описывающий контейнеры, кото�
 
     restart: unless-stopped
     # Автоматически перезапускаем контейнер при сбоях, но не перезапускаем при ручной остановке
+
+    networks:
+      - microservices-net
 
 networks: # Сетевые настройки
   microservices-net:
