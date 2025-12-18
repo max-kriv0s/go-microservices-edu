@@ -41,7 +41,7 @@ func (a *api) Check(ctx context.Context, req *authv3.CheckRequest) (*authv3.Chec
 	sessionUUID, err := a.extractSessionUUID(req)
 	if err != nil {
 		log.Printf("Session extraction failed: %v", err)
-		return a.denyRequest("Missing or invalid session", http.StatusForbidden), nil
+		return a.denyRequest("Missing or invalid session", http.StatusUnauthorized), nil
 	}
 
 	logger.Info(ctx, fmt.Sprintf("Extracted session_uuid: %s", sessionUUID))
@@ -52,7 +52,7 @@ func (a *api) Check(ctx context.Context, req *authv3.CheckRequest) (*authv3.Chec
 	if err != nil {
 		logger.Info(ctx, fmt.Sprintf("Whoami failed: %v", err), zap.String("session_uuid", sessionUUID))
 
-		return a.denyRequest("Invalid session", http.StatusForbidden), nil
+		return a.denyRequest("Invalid session", http.StatusUnauthorized), nil
 	}
 
 	return a.allowRequest(whoamiResp), nil
