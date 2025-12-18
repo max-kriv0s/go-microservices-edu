@@ -1,0 +1,49 @@
+services: # Раздел, описывающий контейнеры, которые требуются для работы Order-сервиса
+  envoy:
+    image: envoyproxy/envoy:v1.34.0
+    # Используем свежую стабильную версию Envoy Proxy — 1.34.0, поддерживающую все необходимые функции
+
+    container_name: envoy
+    # Явное имя контейнера — удобно использовать в логах и CLI
+
+    # depends_on:
+    #   orders-api:
+    #     condition: service_healthy
+    # # Запускаем Envoy только после успешного старта orders-api
+    # # Отключаем так как у нас все сервисы в разных docker compose
+
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+      - ../../../shared/pkg/proto/envoy/v1/envoy_descriptor.pb:/etc/envoy/envoy_descriptor.pb:ro
+      # Примонтируем локальный конфигурационный файл Envoy в контейнер
+
+    ports:
+      - "${ENVOY_PORT}:8080"
+      # Пробрасываем порт 8080 на хост-машину — через него Envoy будет принимать HTTP-запросы от клиента
+
+      - "${ENVOY_ADMIN_PORT}:8081"
+      # Пробрасываем административный порт Envoy — через него можно следить за состоянием и метриками (например, /ready)
+
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 1 bash -c '</dev/tcp/localhost/8081'"]
+      # Проверяем, готов ли Envoy к обслуживанию — проверяем доступность порта 8081
+      interval: 10s
+      # Проверку выполняем каждые 10 секунд
+      timeout: 5s
+      # Ожидаем максимум 5 секунд на ответ
+      retries: 5
+      # После 5 неудачных попыток подряд контейнер считается unhealthy
+      start_period: 10s
+      # Даём Envoy 10 секунд на запуск перед первой проверкой
+
+    restart: unless-stopped
+    # Автоматически перезапускаем контейнер при сбоях, но не перезапускаем при ручной остановке
+
+    networks:
+      - microservices-net
+
+networks: # Сетевые настройки
+  microservices-net:
+    external: true
+    # Мы не создаём новую сеть, а подключаемся к уже существующей общей сети "microservices-net"
+    # Эта сеть создаётся один раз в docker-compose.yml или вручную через docker network create

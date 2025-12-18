@@ -1,0 +1,16 @@
+services:
+  notification:
+    build:
+      context: ./../../../
+      dockerfile: deploy/docker/notification/Dockerfile
+    container_name: notification-services
+    env_file:
+      - ./.env # путь к env относительно compose-файла
+    restart: unless-stopped
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    name: microservices-net
+    external: true

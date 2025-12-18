@@ -1,6 +1,9 @@
 version: v2
+
+# buf.build/googleapis/googleapis - Зависимости для поддержки google/api annotations
 deps:
   - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/googleapis/googleapis
 lint:
   use:
     - STANDARD

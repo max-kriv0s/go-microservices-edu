@@ -21,7 +21,7 @@ type APIV1OrdersOrderUUIDCancelPostParams struct {
 	// Идентификатор заказа.
 	OrderUUID uuid.UUID
 	// UUID сессии пользователя для аутентификации.
-	XSessionUUID uuid.UUID
+	XSessionUUID OptUUID
 }
 
 func unpackAPIV1OrdersOrderUUIDCancelPostParams(packed middleware.Parameters) (params APIV1OrdersOrderUUIDCancelPostParams) {
@@ -37,7 +37,9 @@ func unpackAPIV1OrdersOrderUUIDCancelPostParams(packed middleware.Parameters) (p
 			Name: "X-Session-Uuid",
 			In:   "header",
 		}
-		params.XSessionUUID = packed[key].(uuid.UUID)
+		if v, ok := packed[key]; ok {
+			params.XSessionUUID = v.(OptUUID)
+		}
 	}
 	return params
 }
@@ -97,23 +99,28 @@ func decodeAPIV1OrdersOrderUUIDCancelPostParams(args [1]string, argsEscaped bool
 		}
 		if err := h.HasParam(cfg); err == nil {
 			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
-				val, err := d.DecodeValue()
-				if err != nil {
+				var paramsDotXSessionUUIDVal uuid.UUID
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToUUID(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotXSessionUUIDVal = c
+					return nil
+				}(); err != nil {
 					return err
 				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.XSessionUUID = c
+				params.XSessionUUID.SetTo(paramsDotXSessionUUIDVal)
 				return nil
 			}); err != nil {
 				return err
 			}
-		} else {
-			return err
 		}
 		return nil
 	}(); err != nil {
@@ -131,7 +138,7 @@ type APIV1OrdersOrderUUIDGetParams struct {
 	// Идентификатор заказа.
 	OrderUUID uuid.UUID
 	// UUID сессии пользователя для аутентификации.
-	XSessionUUID uuid.UUID
+	XSessionUUID OptUUID
 }
 
 func unpackAPIV1OrdersOrderUUIDGetParams(packed middleware.Parameters) (params APIV1OrdersOrderUUIDGetParams) {
@@ -147,7 +154,9 @@ func unpackAPIV1OrdersOrderUUIDGetParams(packed middleware.Parameters) (params A
 			Name: "X-Session-Uuid",
 			In:   "header",
 		}
-		params.XSessionUUID = packed[key].(uuid.UUID)
+		if v, ok := packed[key]; ok {
+			params.XSessionUUID = v.(OptUUID)
+		}
 	}
 	return params
 }
@@ -207,23 +216,28 @@ func decodeAPIV1OrdersOrderUUIDGetParams(args [1]string, argsEscaped bool, r *ht
 		}
 		if err := h.HasParam(cfg); err == nil {
 			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
-				val, err := d.DecodeValue()
-				if err != nil {
+				var paramsDotXSessionUUIDVal uuid.UUID
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToUUID(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotXSessionUUIDVal = c
+					return nil
+				}(); err != nil {
 					return err
 				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.XSessionUUID = c
+				params.XSessionUUID.SetTo(paramsDotXSessionUUIDVal)
 				return nil
 			}); err != nil {
 				return err
 			}
-		} else {
-			return err
 		}
 		return nil
 	}(); err != nil {
@@ -239,7 +253,7 @@ func decodeAPIV1OrdersOrderUUIDGetParams(args [1]string, argsEscaped bool, r *ht
 // CreateOrderParams is parameters of CreateOrder operation.
 type CreateOrderParams struct {
 	// UUID сессии пользователя для аутентификации.
-	XSessionUUID uuid.UUID
+	XSessionUUID OptUUID
 }
 
 func unpackCreateOrderParams(packed middleware.Parameters) (params CreateOrderParams) {
@@ -248,7 +262,9 @@ func unpackCreateOrderParams(packed middleware.Parameters) (params CreateOrderPa
 			Name: "X-Session-Uuid",
 			In:   "header",
 		}
-		params.XSessionUUID = packed[key].(uuid.UUID)
+		if v, ok := packed[key]; ok {
+			params.XSessionUUID = v.(OptUUID)
+		}
 	}
 	return params
 }
@@ -263,23 +279,28 @@ func decodeCreateOrderParams(args [0]string, argsEscaped bool, r *http.Request) 
 		}
 		if err := h.HasParam(cfg); err == nil {
 			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
-				val, err := d.DecodeValue()
-				if err != nil {
+				var paramsDotXSessionUUIDVal uuid.UUID
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToUUID(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotXSessionUUIDVal = c
+					return nil
+				}(); err != nil {
 					return err
 				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.XSessionUUID = c
+				params.XSessionUUID.SetTo(paramsDotXSessionUUIDVal)
 				return nil
 			}); err != nil {
 				return err
 			}
-		} else {
-			return err
 		}
 		return nil
 	}(); err != nil {
@@ -297,7 +318,7 @@ type PayOrderParams struct {
 	// Идентификатор заказа.
 	OrderUUID uuid.UUID
 	// UUID сессии пользователя для аутентификации.
-	XSessionUUID uuid.UUID
+	XSessionUUID OptUUID
 }
 
 func unpackPayOrderParams(packed middleware.Parameters) (params PayOrderParams) {
@@ -313,7 +334,9 @@ func unpackPayOrderParams(packed middleware.Parameters) (params PayOrderParams) 
 			Name: "X-Session-Uuid",
 			In:   "header",
 		}
-		params.XSessionUUID = packed[key].(uuid.UUID)
+		if v, ok := packed[key]; ok {
+			params.XSessionUUID = v.(OptUUID)
+		}
 	}
 	return params
 }
@@ -373,23 +396,28 @@ func decodePayOrderParams(args [1]string, argsEscaped bool, r *http.Request) (pa
 		}
 		if err := h.HasParam(cfg); err == nil {
 			if err := h.DecodeParam(cfg, func(d uri.Decoder) error {
-				val, err := d.DecodeValue()
-				if err != nil {
+				var paramsDotXSessionUUIDVal uuid.UUID
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToUUID(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotXSessionUUIDVal = c
+					return nil
+				}(); err != nil {
 					return err
 				}
-
-				c, err := conv.ToUUID(val)
-				if err != nil {
-					return err
-				}
-
-				params.XSessionUUID = c
+				params.XSessionUUID.SetTo(paramsDotXSessionUUIDVal)
 				return nil
 			}); err != nil {
 				return err
 			}
-		} else {
-			return err
 		}
 		return nil
 	}(); err != nil {

@@ -56,22 +56,6 @@ services: # Раздел, в котором описываются все кон
       - microservices-net
       # Redis подключается к той же общей сети, что и PostgreSQL, и остальные сервисы
 
-  iam:
-    build:
-      context: ./../../../
-      dockerfile: deploy/docker/iam/Dockerfile
-    container_name: iam-services
-    env_file:
-      - ./.env # путь к env относительно compose-файла
-    restart: unless-stopped
-    depends_on:
-      postgres-iam:
-        condition: service_healthy
-      redis-iam:
-        condition: service_healthy
-    networks:
-      - microservices-net
-
 volumes: # Раздел томов — Docker сам создаст и будет управлять этим хранилищем данных
   postgres_iam_data:
   # Том для хранения данных PostgreSQL (таблицы, индексы и т.д.)

@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 
 	authV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/auth/v1"
+	envoyV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/envoy/v1"
 	userV1API "github.com/max-kriv0s/go-microservices-edu/iam/internal/api/user/v1"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/config"
 	"github.com/max-kriv0s/go-microservices-edu/iam/internal/repository"
@@ -29,8 +31,9 @@ import (
 )
 
 type diContainer struct {
-	authV1API authV1.AuthServiceServer
-	userV1API userV1.UserServiceServer
+	authV1API  authV1.AuthServiceServer
+	userV1API  userV1.UserServiceServer
+	envoyV1API authv3.AuthorizationServer
 
 	authService service.AuthService
 	userService service.UserService
@@ -65,6 +68,14 @@ func (d *diContainer) UserV1API(ctx context.Context) userV1.UserServiceServer {
 	}
 
 	return d.userV1API
+}
+
+func (d *diContainer) EnvoyV1API(ctx context.Context) authv3.AuthorizationServer {
+	if d.envoyV1API == nil {
+		d.envoyV1API = envoyV1API.NewApi(d.AuthV1API(ctx))
+	}
+
+	return d.envoyV1API
 }
 
 func (d *diContainer) AuthService(ctx context.Context) service.AuthService {

@@ -1,0 +1,399 @@
+# ===============================
+# БАЗОВАЯ КОНФИГУРАЦИЯ ENVOY PROXY
+# ===============================
+
+# Административная настройка — конфигурация административного интерфейса
+admin:
+  address:
+    socket_address:
+      # IP адрес для административного интерфейса (0.0.0.0 = все интерфейсы)
+      address: 0.0.0.0
+      # Порт административного интерфейса (доступен по /ready, /stats, /config_dump)
+      port_value: 8081
+
+# ===============================
+# LISTENERS (Слушатели входящих соединений)
+# ===============================
+# Listeners определяют как Envoy принимает входящий трафик
+# Можно настроить несколько listeners на разных портах для разных протоколов
+
+static_resources:
+  listeners:
+    - name: api_listener
+      # Имя listener'а — используется в логах и метриках для идентификации
+
+      address:
+        socket_address:
+          # IP адрес, на котором слушаем входящие соединения
+          # 0.0.0.0 означает "слушать на всех доступных сетевых интерфейсах"
+          address: 0.0.0.0
+          # Порт, на котором принимаем HTTP-трафик от клиентов
+          port_value: 8080
+
+      # Фильтры обработки соединений — определяют как обрабатывать входящий трафик
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              # HTTP Connection Manager — основной фильтр для обработки HTTP-трафика
+              # Этот фильтр парсит HTTP-запросы, применяет маршрутизацию, добавляет заголовки
+
+              typed_config:
+                '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+
+                # Имя схемы маршрутизации (используется в метриках)
+                stat_prefix: api
+
+                # ===============================
+                # КОНФИГУРАЦИЯ МАРШРУТИЗАЦИИ
+                # ===============================
+
+                route_config:
+                  name: api_routes
+                  # Имя конфигурации маршрутизации
+
+                  virtual_hosts:
+                    # Virtual hosts — логическое разделение трафика по доменам или путям
+                    - name: api_service
+                      # Имя виртуального хоста
+
+                      domains: ['*']
+                      # Домены, которые обслуживает этот virtual host
+                      # "*" означает "любой домен" — подходит для локальной разработки
+
+                      # CORS настройки
+                      cors:
+                        allow_origin_string_match:
+                        - prefix: "*"
+                        allow_methods: GET, PUT, DELETE, POST, OPTIONS
+                        allow_headers: keep-alive,user-agent,cache-control,content-type,authorization,session-uuid,x-session-id,cookie
+                        max_age: "1728000"
+                        expose_headers: x-user-uuid,x-user-login,x-user-email,x-session-uuid,x-session-expires,grpc-status,grpc-message
+
+                      # ===============================
+                      # ПРАВИЛА МАРШРУТИЗАЦИИ
+                      # ===============================
+                      routes:
+                        # Здесь определяем куда направлять различные запросы
+
+                        - match:
+                            prefix: '/health'
+                          route:
+                            cluster: orders_api_cluster
+                            timeout: 5s
+                          # Отключаем авторизацию для health check
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
+
+                        - match:
+                            prefix: '/api/v1/orders' # Условие совпадения — запросы с префиксом /api/v1/orders
+                          route:
+                            cluster: orders_api_cluster # Действие при совпадении — перенаправить на кластер weather_api_cluster
+
+                            # Максимальное время ожидания ответа от backend сервиса
+                            # Если backend не отвечает за 15 секунд — возвращаем 504 Gateway Timeout
+                            timeout: 15s
+
+                        - match:
+                            prefix: '/api/v1/inventory'
+                          route:
+                            cluster: inventory_grpc_cluster
+                            timeout: 15s
+
+                        - match:
+                            prefix: '/api/v1/auth'
+                          route:
+                            cluster: iam_grpc_cluster
+                            timeout: 15s
+                          # Отключаем авторизацию
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
+
+                        - match:
+                            prefix: '/api/v1/users'
+                          route:
+                            cluster: iam_grpc_cluster
+                            timeout: 15s
+                          # Отключаем авторизацию
+                          typed_per_filter_config:
+                            envoy.filters.http.ext_authz:
+                              "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                              disabled: true
+
+                        # Маршрут по умолчанию — для всех остальных запросов
+                        - match:
+                            prefix: '/'
+                          direct_response:
+                            # Прямой ответ без обращения к backend
+                            status: 404
+                            body:
+                              inline_string: |
+                                {
+                                  "error": "Not Found",
+                                  "message": "Available endpoints: /api/v1/orders",
+                                  "examples": [
+                                    "POST /api/v1/orders",
+                                    "POST /api/v1/orders/{order_uuid}/pay",
+                                    "POST /api/v1/orders/{order_uuid}",
+                                    "POST /api/v1/orders/{order_uuid}/cancel"
+                                  ]
+                                }
+
+                # ===============================
+                # HTTP ФИЛЬТРЫ
+                # ===============================
+                http_filters:
+                  # HTTP фильтры применяются к каждому запросу в указанном порядке
+
+                  # 1. CORS фильтр - ПЕРВЫЙ
+                  - name: envoy.filters.http.cors
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+
+                  # 2. ⚠️ EXTERNAL AUTHORIZATION (gRPC) - ВТОРОЙ, ДО transcoder!
+                  - name: envoy.filters.http.ext_authz
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+
+                      # ⚠️ ИСПОЛЬЗУЕМ gRPC СЕРВИС (IAM напрямую)
+                      grpc_service:
+                        envoy_grpc:
+                          cluster_name: iam_grpc_cluster
+                        timeout: 2s  # Таймаут для gRPC вызова
+
+                      # КРИТИЧНО: Запрещать доступ если auth сервис недоступен
+                      failure_mode_allow: false
+
+                      # Включать тело запроса в авторизацию (для POST/PUT)
+                      with_request_body:
+                        max_request_bytes: 8192
+                        allow_partial_message: true
+                        pack_as_bytes: false
+
+                      # Передаем метаданные о запросе
+                      include_peer_certificate: false
+
+                      # Заголовки, которые отправляем в auth service
+                      allowed_headers:
+                        patterns:
+                          - exact: "authorization"     # Bearer token
+                          - exact: "cookie"           # Session cookies
+                          - exact: "session-uuid"     # Кастомный заголовок
+                          - exact: "x-session-id"     # Альтернативный заголовок
+                          - exact: "user-agent"       # Для аналитики
+                          - exact: "x-forwarded-for"  # IP адрес клиента
+                          - exact: "x-real-ip"        # Реальный IP
+                          - exact: "host"             # Хост
+
+                  # 3. gRPC JSON Transcoder - ТРЕТИЙ, после авторизации
+                  - name: envoy.filters.http.grpc_json_transcoder
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
+                      proto_descriptor: "/etc/envoy/envoy_descriptor.pb"
+                      services: ["auth.v1.AuthService", "user.v1.UserService", "inventory.v1.InventoryService"]
+                      match_incoming_request_route: true
+                      auto_mapping: true
+                      print_options:
+                        add_whitespace: true
+                        always_print_primitive_fields: true
+                        always_print_enums_as_ints: false
+                        preserve_proto_field_names: true
+                      ignore_unknown_query_parameters: true
+
+                  # 4. Router фильтр - ОБЯЗАТЕЛЬНО ПОСЛЕДНИЙ
+                  - name: envoy.filters.http.router
+                    # Router фильтр — основной фильтр маршрутизации, ОБЯЗАТЕЛЬНО должен быть последним
+                    typed_config:
+                      '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  # ===============================
+  # CLUSTERS (Кластеры backend сервисов)
+  # ===============================
+  # Clusters описывают группы backend серверов и настройки подключения к ним
+
+  clusters:
+    - name: orders_api_cluster
+      # Имя кластера (должно совпадать с именем в маршрутах)
+
+      # ===============================
+      # DISCOVERY TYPE
+      # ===============================
+      type: STRICT_DNS
+      # Тип обнаружения endpoints:
+      # - STRICT_DNS: использовать DNS для резолвинга хостов (подходит для Docker)
+      # - STATIC: статический список endpoints
+      # - EDS: External Discovery Service для динамического обнаружения
+
+      # ===============================
+      # LOAD BALANCING
+      # ===============================
+      lb_policy: ROUND_ROBIN
+      # Политика балансировки нагрузки:
+      # - ROUND_ROBIN: по очереди между всеми healthy endpoints
+      # - LEAST_REQUEST: на endpoint с наименьшим количеством активных запросов
+      # - RANDOM: случайный выбор
+
+      # ===============================
+      # HEALTH CHECKING (базовые настройки)
+      # ===============================
+
+      health_checks:
+        # Конфигурация проверок здоровья backend сервисов
+        - timeout: 3s
+          # Таймаут на проверку здоровья
+
+          interval: 10s
+          # Интервал между проверками
+
+          unhealthy_threshold: 3
+          # Количество неудачных проверок подряд для признания endpoint unhealthy
+
+          healthy_threshold: 2
+          # Количество успешных проверок подряд для признания endpoint healthy
+
+          http_health_check:
+            # HTTP проверка здоровья
+            path: '/health'
+            # Путь для проверки здоровья на backend сервисе
+
+      # ===============================
+      # ENDPOINT CONFIGURATION
+      # ===============================
+      load_assignment:
+        cluster_name: orders_api_cluster
+        # Имя кластера (должно совпадать с именем cluster выше)
+
+        endpoints:
+          # Список endpoints (backend серверов)
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      # Имя сервиса orders-api из docker-compose.yml
+                      # Docker автоматически резолвит это имя в IP адрес контейнера
+                      address: order
+                      port_value: 8080
+                      # Порт, на котором работает weather API внутри контейнера
+
+    # ⚠️ IAM gRPC Service Cluster (для External Authorization)
+    - name: iam_grpc_cluster
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+
+      # HTTP/2 обязательно для gRPC
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options:
+              # Настройки HTTP/2 для оптимальной производительности
+              max_concurrent_streams: 100
+              initial_stream_window_size: 65536
+              initial_connection_window_size: 1048576
+
+      # Connection pooling для производительности
+      circuit_breakers:
+        thresholds:
+        - priority: DEFAULT
+          max_connections: 10          # Ограничиваем количество соединений
+          max_pending_requests: 50     # Очередь запросов
+          max_requests: 100           # Максимальные активные запросы
+          max_retries: 3              # Максимальные retry попытки
+          track_remaining: true
+
+      # Настройки соединений
+      upstream_connection_options:
+        tcp_keepalive:
+          keepalive_probes: 3
+          keepalive_time: 30
+          keepalive_interval: 5
+
+      # # Health checking для IAM сервиса
+      # health_checks:
+      # - timeout: 1s
+      #   interval: 5s
+      #   unhealthy_threshold: 2
+      #   healthy_threshold: 2
+      #   grpc_health_check:
+      #     # service_name: "auth.v1.AuthService"
+      #     service_name: "grpc.health.v1.Health"
+
+      # Endpoint IAM gRPC сервиса
+      load_assignment:
+        cluster_name: iam_grpc_cluster
+        endpoints:
+        - lb_endpoints:
+          - endpoint:
+              address:
+                socket_address:
+                  address: iam  # Docker service name
+                  port_value: 50053         # gRPC порт IAM сервиса
+
+
+    - name: inventory_grpc_cluster
+      type: STRICT_DNS
+      lb_policy: ROUND_ROBIN
+
+     # HTTP/2 обязательно для gRPC
+      typed_extension_protocol_options:
+        envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+          "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+          explicit_http_config:
+            http2_protocol_options:
+              # Настройки HTTP/2 для оптимальной производительности
+              max_concurrent_streams: 100
+              initial_stream_window_size: 65536
+              initial_connection_window_size: 1048576
+
+      # Connection pooling для производительности
+      circuit_breakers:
+        thresholds:
+        - priority: DEFAULT
+          max_connections: 10          # Ограничиваем количество соединений
+          max_pending_requests: 50     # Очередь запросов
+          max_requests: 100           # Максимальные активные запросы
+          max_retries: 3              # Максимальные retry попытки
+          track_remaining: true
+
+      # Настройки соединений
+      upstream_connection_options:
+        tcp_keepalive:
+          keepalive_probes: 3
+          keepalive_time: 30
+          keepalive_interval: 5
+
+      load_assignment:
+        cluster_name: inventory_grpc_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: inventory
+                      port_value: 50051
+
+# ===============================
+# ПОТОК ОБРАБОТКИ ЗАПРОСА:
+# ===============================
+# 1. Клиент отправляет HTTP запрос на localhost:8080
+# 2. Envoy принимает запрос через weather_api_listener
+# 3. HTTP Connection Manager парсит HTTP запрос
+# 4. Router фильтр применяет правила маршрутизации из route_config
+# 5. Если путь начинается с /api/v1/orders — перенаправляем на orders_api_cluster
+# 6. Envoy выбирает healthy endpoint из кластера (используя Round Robin)
+# 7. Отправляет запрос на orders-api:8080
+# 8. Получает ответ от weather API и передаёт его клиенту
+
+# ===============================
+# ДЛЯ ПРОДАКШЕНА НУЖНО ДОБАВИТЬ:
+# ===============================
+# - Circuit breakers для защиты от перегрузки
+# - CORS настройки для веб-приложений
+# - TLS/SSL сертификаты для HTTPS
+# - Rate limiting для защиты от DDoS
+# - Detailed logging и tracing
+# - Retry policies для надежности
+# - Health check настройки под ваш SLA

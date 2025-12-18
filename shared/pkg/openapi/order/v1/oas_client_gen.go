@@ -184,7 +184,10 @@ func (c *Client) sendAPIV1OrdersOrderUUIDCancelPost(ctx context.Context, params 
 			Explode: false,
 		}
 		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+			if val, ok := params.XSessionUUID.Get(); ok {
+				return e.EncodeValue(conv.UUIDToString(val))
+			}
+			return nil
 		}); err != nil {
 			return res, errors.Wrap(err, "encode header")
 		}
@@ -287,7 +290,10 @@ func (c *Client) sendAPIV1OrdersOrderUUIDGet(ctx context.Context, params APIV1Or
 			Explode: false,
 		}
 		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+			if val, ok := params.XSessionUUID.Get(); ok {
+				return e.EncodeValue(conv.UUIDToString(val))
+			}
+			return nil
 		}); err != nil {
 			return res, errors.Wrap(err, "encode header")
 		}
@@ -377,7 +383,10 @@ func (c *Client) sendCreateOrder(ctx context.Context, request *CreateOrderReques
 			Explode: false,
 		}
 		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+			if val, ok := params.XSessionUUID.Get(); ok {
+				return e.EncodeValue(conv.UUIDToString(val))
+			}
+			return nil
 		}); err != nil {
 			return res, errors.Wrap(err, "encode header")
 		}
@@ -485,7 +494,10 @@ func (c *Client) sendPayOrder(ctx context.Context, request *PayOrderRequestDto, 
 			Explode: false,
 		}
 		if err := h.EncodeParam(cfg, func(e uri.Encoder) error {
-			return e.EncodeValue(conv.UUIDToString(params.XSessionUUID))
+			if val, ok := params.XSessionUUID.Get(); ok {
+				return e.EncodeValue(conv.UUIDToString(val))
+			}
+			return nil
 		}); err != nil {
 			return res, errors.Wrap(err, "encode header")
 		}

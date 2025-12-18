@@ -26,8 +26,12 @@ const (
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AuthService
 type AuthServiceClient interface {
+	// Login пользователя
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	// Получение данных пользователя
 	Whoami(ctx context.Context, in *WhoamiRequest, opts ...grpc.CallOption) (*WhoamiResponse, error)
 }
 
@@ -62,8 +66,12 @@ func (c *authServiceClient) Whoami(ctx context.Context, in *WhoamiRequest, opts 
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
+//
+// AuthService
 type AuthServiceServer interface {
+	// Login пользователя
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	// Получение данных пользователя
 	Whoami(context.Context, *WhoamiRequest) (*WhoamiResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
